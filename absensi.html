@@ -312,6 +312,73 @@
       const cams = devices.filter(d => d.kind === 'videoinput');
       switchBtn.disabled = cams.length <= 1;
     });
+
+    // === Kirim data absensi ke Google Apps Script ===
+    async function submitToGoogle() {
+        const userId = userIdInput.value.trim();
+        if (!userId) {
+            alert("ID Karyawan wajib diisi!");
+            return false;
+        }
+
+        if (!capturedImageUrl) {
+            alert("Foto belum diambil!");
+            return false;
+        }
+
+        // Tampilkan status loading
+        const originalText = statusEl.textContent;
+        statusEl.textContent = "📤 Mengirim ke Google...";
+
+        try {
+            // Ambil data gambar sebagai Blob
+            const response = await fetch(capturedImageUrl);
+            const blob = await response.blob();
+
+            // Baca Blob sebagai ArrayBuffer
+            const arrayBuffer = await blob.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+            }
+            const base64Data = btoa(binary);
+
+            // Siapkan metadata
+            const metadata = {
+                userId: userId,
+                lat: userLocation?.lat || null,
+                lng: userLocation?.lng || null,
+                timestamp: new Date().toISOString()
+            };
+
+            // URL Web App dari Google Apps Script (GANTI DENGAN MILIKMU!)
+            const WEB_APP_URL = 'https://script.google.com/macros/s/ABC123/exec'; // ← GANTI!
+
+            // Kirim ke Google Apps Script
+            const submitResponse = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `metadata=${encodeURIComponent(JSON.stringify(metadata))}&imageData=${encodeURIComponent(base64Data)}`
+            });
+
+            const result = await submitResponse.json();
+
+            if (result.success) {
+                statusEl.textContent = "✅ Data absensi berhasil disimpan ke Google!";
+                return true;
+            } else {
+                throw new Error(result.error || "Gagal menyimpan ke Google");
+            }
+
+        } catch (err) {
+            console.error("Error kirim ke Google:", err);
+            statusEl.textContent = "❌ Gagal kirim ke Google: " + (err.message || "Error tidak dikenal");
+            return false;
+        }
+    }
   </script>
 </body>
 </html>
