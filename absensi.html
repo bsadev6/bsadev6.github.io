@@ -98,6 +98,7 @@
     <button id="downloadBtn" class="btn success" style="display:none;">⬇️ Unduh</button>
     <button id="retakeBtn" class="btn" style="display:none;">↺ Ambil Ulang</button>
     <button id="sendBtn" class="btn primary" style="display:none;">📤 Kirim ke Server</button>
+    <div id="statuSend" ></div>
   </div>
 
 
@@ -118,6 +119,7 @@
     const retakeBtn = document.getElementById('retakeBtn');
     const statusEl = document.getElementById('status');
     const sendBtn =  document.getElementById('sendBtn');
+    const statuSend = document.getElementById('statuSend');
 
     // === Variabel Global ===
     let stream = null;
@@ -332,7 +334,7 @@
 
         // Tampilkan status loading
         const originalText = statusEl.textContent;
-        statusEl.textContent = "📤 Mengirim ke Google...";
+        statuSend.textContent = "📤 Mengirim ke Google...";
 
         try {
             // Ambil data gambar sebagai Blob
@@ -371,7 +373,7 @@
             const result = await submitResponse.json();
 
             if (result.success) {
-                statusEl.textContent = "✅ Data absensi berhasil disimpan ke Google!";
+                statuSend.textContent = "✅ Data absensi berhasil disimpan ke Google!";
                 return true;
             } else {
                 throw new Error(result.error || "Gagal menyimpan ke Google");
@@ -379,7 +381,7 @@
 
         } catch (err) {
             console.error("Error kirim ke Google:", err);
-            statusEl.textContent = "❌ Gagal kirim ke Google: " + (err.message || "Error tidak dikenal");
+            statuSend.textContent = "❌ Gagal kirim ke Google: " + (err.message || "Error tidak dikenal");
             return false;
         }
     }
