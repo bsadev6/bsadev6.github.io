@@ -97,6 +97,7 @@
     <button id="captureBtn" class="btn success" disabled>📷 Ambil Foto</button>
     <button id="downloadBtn" class="btn success" style="display:none;">⬇️ Unduh</button>
     <button id="retakeBtn" class="btn" style="display:none;">↺ Ambil Ulang</button>
+    <button id="sendBtn" class="btn primary" style="display:none;">📤 Kirim ke Server</button>
   </div>
 
 
@@ -116,6 +117,7 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const retakeBtn = document.getElementById('retakeBtn');
     const statusEl = document.getElementById('status');
+    const sendBtn =  document.getElementById('sendBtn').addEventListener('click', submitToGoogle);
 
     // === Variabel Global ===
     let stream = null;
@@ -269,6 +271,7 @@
       // Tampilkan tombol
       downloadBtn.style.display = 'inline-block';
       retakeBtn.style.display = 'inline-block';
+      sendBtn.style.display = 'inline-block';
       captureBtn.style.display = 'none';
       switchBtn.disabled = true;
       statusEl.textContent = "Foto siap diunduh!";
@@ -286,6 +289,7 @@
     retakeBtn.addEventListener('click', () => {
       photoPreview.style.display = 'none';
       downloadBtn.style.display = 'none';
+      sendBtn.style.display = 'none';
       retakeBtn.style.display = 'none';
       captureBtn.style.display = 'inline-block';
       switchBtn.disabled = false;
