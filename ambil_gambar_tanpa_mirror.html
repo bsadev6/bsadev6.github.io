@@ -141,9 +141,41 @@
     }
 
     // === Ganti kamera ===
-    switchBtn.addEventListener('click', () => {
+    // switchBtn.addEventListener('click', () => {
+    //   facingMode = facingMode === 'user' ? 'environment' : 'user';
+    //   startCamera();
+    // });
+
+    // === Ganti kamera (depan/belakang) ===
+    switchBtn.addEventListener('click', async () => {
+      if (!stream) return;
+
+      // Hentikan stream lama
+      stream.getTracks().forEach(track => track.stop());
+
+      // Toggle facingMode
       facingMode = facingMode === 'user' ? 'environment' : 'user';
-      startCamera();
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode },
+          audio: false
+        });
+
+        video.srcObject = stream;
+        statusEl.textContent = `Kamera aktif (${facingMode === 'user' ? 'Depan' : 'Belakang'})`;
+
+        // Optional: log deviceId
+        const tracks = stream.getVideoTracks();
+        if (tracks[0]?.getSettings) {
+          const settings = tracks[0].getSettings();
+          console.log("Device ID:", settings.deviceId);
+        }
+
+      } catch (err) {
+        statusEl.textContent = "❌ Gagal ganti kamera: " + err.message;
+        console.error(err);
+      }
     });
 
     // === Ambil foto ===
