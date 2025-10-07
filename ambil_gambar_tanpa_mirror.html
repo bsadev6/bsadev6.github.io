@@ -343,6 +343,30 @@
         statusEl.textContent = "❌ Kamera tidak tersedia";
       }
     })();
+
+    // === Kirim data absensi ke Google Sheets ===
+    async function submitAbsensi(lat, lng, userId = 'user-' + Date.now()) {
+      const WEB_APP_URL = 'https://script.google.com/macros/s/ABC123/exec'; // ← GANTI DENGAN URL-MU
+
+      try {
+        const response = await fetch(WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: userId,
+            lat: lat,
+            lng: lng,
+            status: 'Hadir'
+          })
+        });
+
+        const result = await response.json();
+        return result.success;
+      } catch (err) {
+        console.error('Gagal kirim absensi:', err);
+        return false;
+      }
+    }
   </script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>

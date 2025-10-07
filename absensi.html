@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Absensi Karyawan</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 15px;
+      background: #f5f5f5;
+    }
+    #video, #photoPreview {
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+      background: #000;
+      border-radius: 8px;
+      margin: 10px auto;
+      transform: scaleX(-1);
+    }
+    #photoPreview {
+      display: none;
+      transform: none;
+      border: 2px solid #4CAF50;
+    }
+    #map {
+      width: 100%;
+      max-width: 500px;
+      height: 200px;
+      margin: 15px auto;
+      border-radius: 8px;
+      display: none;
+      border: 1px solid #ccc;
+    }
+    .input-group {
+      margin: 15px 0;
+    }
+    input {
+      padding: 12px;
+      font-size: 16px;
+      width: 80%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .btn {
+      margin: 6px;
+      padding: 12px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .primary { background: #007AFF; color: white; }
+    .success { background: #34C759; color: white; }
+    .controls { margin: 15px 0; }
+    #status {
+      margin: 10px 0;
+      color: #555;
+      font-size: 14px;
+      min-height: 20px;
+    }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <h2>📋 Absensi Karyawan</h2>
+
+  <!-- Input ID Karyawan -->
+  <div class="input-group">
+    <input type="text" id="userIdInput" placeholder="Masukkan ID Karyawan" autocomplete="off">
+  </div>
+
+  <!-- Tombol mulai -->
+  <button id="startAppBtn" class="btn primary">▶️ Mulai Absensi</button>
+
+  <video 
+    id="video" 
+    autoplay 
+    muted 
+    playsinline 
+    webkit-playsinline
+    style="display:none;"
+  ></video>
+  
+  <img id="photoPreview" alt="Foto Absensi">
+
+  <div class="controls">
+    <button id="switchBtn" class="btn primary" disabled>🔄 Ganti Kamera</button>
+    <br>
+    <button id="captureBtn" class="btn success" disabled>📷 Ambil Foto</button>
+    <button id="downloadBtn" class="btn success" style="display:none;">⬇️ Unduh</button>
+    <button id="retakeBtn" class="btn" style="display:none;">↺ Ambil Ulang</button>
+  </div>
+
+  <div id="status">Masukkan ID & klik "Mulai Absensi"</div>
+  <div id="map"></div>
+
+  <!-- Libraries -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
+  
+  <script>
+    // === Konfigurasi ===
+    const WEB_APP_URL = 'https://script.google.com/macros/s/ABC123/exec'; // ← GANTI DENGAN URL-MU
+
+    // === Elemen DOM ===
+    const video = document.getElementById('video');
+    const photoPreview = document.getElementById('photoPreview');
+    const mapEl = document.getElementById('map');
+    const userIdInput = document.getElementById('userIdInput');
+    const startAppBtn = document.getElementById('startAppBtn');
+    const switchBtn = document.getElementById('switchBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const retakeBtn = document.getElementById('retakeBtn');
+    const statusEl = document.getElementById('status');
+
+    // === Variabel Global ===
+    let stream = null;
+    let userLocation = null;
+    let capturedImageUrl = null;
+    let capturedImageBlob = null;
+    let facingMode = 'environment';
+    let map = null;
+
+    // === Helper: Konversi EXIF ===
+    function toExifRational(value) {
+      const abs = Math.abs(value);
+      const deg = Math.floor(abs);
+      const min = Math.floor((abs - deg) * 60);
+      const sec = (abs - deg - min / 60) * 3600;
+      return [[deg, 1], [min, 1], [Math.round(sec * 10000), 10000]];
+    }
+
+    // === Peta ===
+    function initMap(lat, lng) {
+      mapEl.style.display = 'block';
+      if (map) map.remove();
+      map = L.map('map').setView([lat, lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+      L.marker([lat, lng]).addTo(map).bindPopup('Lokasi Absensi').openPopup();
+    }
+
+    // === Lokasi ===
+    async function requestLocation() {
+      if (!navigator.geolocation) {
+        statusEl.textContent = "Geolocation tidak didukung";
+        return null;
+      }
+      try {
+        const pos = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000
+          });
+        });
+        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        statusEl.textContent = `Lokasi: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+        initMap(userLocation.lat, userLocation.lng);
+        return userLocation;
+      } catch (err) {
+        userLocation = null;
+        statusEl.textContent = "Lokasi tidak diizinkan";
+        mapEl.style.display = 'none';
+        return null;
+      }
+    }
+
+    // === Kamera ===
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode },
+          audio: false
+        });
+        video.srcObject = stream;
+        video.style.display = 'block';
+        captureBtn.disabled = false;
+        statusEl.textContent = `Kamera aktif (${facingMode === 'user' ? 'Depan' : 'Belakang'})`;
+      } catch (err) {
+        statusEl.textContent = "Gagal akses kamera";
+        console.error(err);
+      }
+    }
+
+    // === Ganti Kamera ===
+    switchBtn.addEventListener('click', async () => {
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      facingMode = facingMode === 'user' ? 'environment' : 'user';
+      await startCamera();
+    });
+
+    // === Ambil Foto ===
+    captureBtn.addEventListener('click', async () => {
+      const userId = userIdInput.value.trim();
+      if (!userId) {
+        alert("Harap masukkan ID Karyawan!");
+        return;
+      }
+
+      if (!userLocation) await requestLocation();
+
+      const w = video.videoWidth || 640;
+      const h = video.videoHeight || 480;
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+
+      ctx.drawImage(video, 0, 0, w, h);
+
+      // Tambahkan teks
+      const now = new Date();
+      const timestamp = now.toLocaleString('id-ID', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+      });
+
+      ctx.font = '16px Arial';
+      ctx.textBaseline = 'top';
+
+      const timestampText = `Waktu: ${timestamp}`;
+      const locText = userLocation ? 
+        `Lokasi: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}` : 
+        "Lokasi: Tidak tersedia";
+      const idText = `ID: ${userId}`;
+
+      const tw = ctx.measureText(timestampText).width;
+      const lw = ctx.measureText(locText).width;
+      const iw = ctx.measureText(idText).width;
+      const boxW = Math.max(tw, lw, iw) + 20;
+      const boxH = userLocation ? 75 : 60;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(10, 10, boxW, boxH);
+      ctx.fillStyle = 'white';
+      ctx.fillText(timestampText, 20, 15);
+      ctx.fillText(idText, 20, 35);
+      if (userLocation) ctx.fillText(locText, 20, 55);
+
+      // Simpan sebagai JPEG
+      capturedImageUrl = canvas.toDataURL('image/jpeg', 0.92);
+      photoPreview.src = capturedImageUrl;
+      photoPreview.style.display = 'block';
+
+      // Simpan Blob untuk upload
+      canvas.toBlob(blob => {
+        capturedImageBlob = blob;
+      }, 'image/jpeg', 0.92);
+
+      // Tampilkan tombol
+      downloadBtn.style.display = 'inline-block';
+      retakeBtn.style.display = 'inline-block';
+      captureBtn.style.display = 'none';
+      switchBtn.disabled = true;
+      statusEl.textContent = "Foto siap dikirim!";
+    });
+
+    // === Unduh Foto ===
+    downloadBtn.addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = capturedImageUrl;
+      a.download = `absensi-${userIdInput.value}-${Date.now()}.jpg`;
+      a.click();
+    });
+
+    // === Ambil Ulang ===
+    retakeBtn.addEventListener('click', () => {
+      photoPreview.style.display = 'none';
+      downloadBtn.style.display = 'none';
+      retakeBtn.style.display = 'none';
+      captureBtn.style.display = 'inline-block';
+      switchBtn.disabled = false;
+      statusEl.textContent = "Siap ambil foto lagi";
+    });
+
+    // === Kirim ke Google (Sheets + Drive) ===
+    async function submitToGoogle() {
+      const userId = userIdInput.value.trim();
+      if (!userId) {
+        alert("ID Karyawan wajib diisi!");
+        return false;
+      }
+
+      if (!capturedImageBlob) {
+        alert("Foto belum diambil!");
+        return false;
+      }
+
+      statusEl.textContent = "Mengirim data ke server...";
+
+      try {
+        // Baca blob sebagai array buffer
+        const arrayBuffer = await capturedImageBlob.arrayBuffer();
+        const binary = Array.from(new Uint8Array(arrayBuffer)).map(b => String.fromCharCode(b)).join('');
+        const base64 = btoa(binary);
+
+        // Kirim ke Apps Script
+        const response = await fetch(WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `metadata=${encodeURIComponent(JSON.stringify({
+            userId: userId,
+            lat: userLocation?.lat || null,
+            lng: userLocation?.lng || null
+          }))}&imageData=${base64}`
+        });
+
+        const result = await response.json();
+        return result.success;
+      } catch (err) {
+        console.error("Error kirim ke Google:", err);
+        return false;
+      }
+    }
+
+    // === Mulai Aplikasi ===
+    startAppBtn.addEventListener('click', async () => {
+      const userId = userIdInput.value.trim();
+      if (!userId) {
+        alert("Harap masukkan ID Karyawan!");
+        return;
+      }
+
+      startAppBtn.style.display = 'none';
+      await startCamera();
+      await requestLocation();
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cams = devices.filter(d => d.kind === 'videoinput');
+      switchBtn.disabled = cams.length <= 1;
+    });
+
+    // === Kirim saat klik download (opsional) ===
+    downloadBtn.addEventListener('click', async () => {
+      const success = await submitToGoogle();
+      if (success) {
+        statusEl.textContent = "✅ Absensi berhasil disimpan ke Google!";
+      } else {
+        statusEl.textContent = "❌ Gagal menyimpan ke Google";
+      }
+      // Tetap unduh file
+      const a = document.createElement('a');
+      a.href = capturedImageUrl;
+      a.download = `absensi-${userIdInput.value}-${Date.now()}.jpg`;
+      a.click();
+    });
+  </script>
+</body>
+</html>
