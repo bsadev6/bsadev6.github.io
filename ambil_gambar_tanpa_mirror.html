@@ -55,6 +55,9 @@
 <body>
   <h2>📸 ABSEN LOKASI</h2>
 
+  <div id="status">Meminta akses lokasi & kamera...</div>
+  <div id="locationStatus" class="info">📍 Lokasi: Menunggu izin...</div>
+  
   <div id="map" style="width: 100%; max-width: 500px; height: 250px; margin: 15px auto; border-radius: 8px; display: none;"></div>
   <video id="video" autoplay muted playsinline></video>
   <img id="photoPreview" alt="Hasil Foto">
@@ -67,8 +70,6 @@
     <button id="retakeBtn" class="btn" style="display:none;">↺ Ambil Ulang</button>
   </div>
 
-  <div id="status">Meminta akses lokasi & kamera...</div>
-  <div id="locationStatus" class="info">📍 Lokasi: Menunggu izin...</div>
 
   <!-- Library piexifjs -->
   <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
