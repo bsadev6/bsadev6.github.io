@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <title>Foto + Lokasi + EXIF</title>
   <style>
     body {
@@ -55,6 +56,7 @@
   <h2>📸 Foto dengan Lokasi & EXIF</h2>
 
   <video id="video" autoplay muted playsinline></video>
+  <div id="map" style="width: 100%; max-width: 500px; height: 250px; margin: 15px auto; border-radius: 8px; display: none;"></div>
   <img id="photoPreview" alt="Hasil Foto">
 
   <div class="controls">
@@ -84,6 +86,25 @@
     let userLocation = null;
     let capturedImageUrl = null;
     let facingMode = 'environment';
+    let map = null;
+    let marker = null;
+
+    function initMap(lat, lng) {
+      const mapContainer = document.getElementById('map');
+      mapContainer.style.display = 'block';
+
+      if (map) map.remove();
+
+      map = L.map('map').setView([lat, lng], 15);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      marker = L.marker([lat, lng]).addTo(map)
+        .bindPopup('Lokasi Anda')
+        .openPopup();
+    }
 
     // === Konversi ke format EXIF ===
     function toExifRational(value) {
@@ -114,12 +135,15 @@
           lng: pos.coords.longitude
         };
 
+        initMap(userLocation.lat, userLocation.lng);
+        
         locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
         return userLocation;
 
       } catch (err) {
         userLocation = null;
         locationStatusEl.textContent = "⚠️ Lokasi tidak diizinkan atau tidak tersedia";
+        document.getElementById('map').style.display = 'none';
         console.warn("Geolocation error:", err);
         return null;
       }
@@ -319,5 +343,6 @@
       }
     })();
   </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>
