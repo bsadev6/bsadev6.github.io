@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Foto + Lokasi + EXIF</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 15px;
+      background: #f5f5f5;
+    }
+    #video, #photoPreview {
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+      background: #000;
+      border-radius: 8px;
+      margin: 10px auto;
+    }
+    #video {
+      transform: scaleX(-1);
+    }
+    #photoPreview {
+      display: none;
+      border: 2px solid #4CAF50;
+    }
+    .btn {
+      margin: 6px;
+      padding: 10px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .primary { background: #2196F3; color: white; }
+    .success { background: #4CAF50; color: white; }
+    .controls { margin: 15px 0; }
+    #status {
+      margin: 10px 0;
+      color: #555;
+      font-size: 14px;
+      min-height: 20px;
+    }
+    .info {
+      color: #666;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>📸 Foto dengan Lokasi & EXIF</h2>
+
+  <video id="video" autoplay muted playsinline></video>
+  <img id="photoPreview" alt="Hasil Foto">
+
+  <div class="controls">
+    <button id="switchBtn" class="btn primary" disabled>🔄 Ganti Kamera</button>
+    <br>
+    <button id="captureBtn" class="btn success">📷 Ambil Foto</button>
+    <button id="downloadBtn" class="btn success" style="display:none;">⬇️ Unduh</button>
+    <button id="retakeBtn" class="btn" style="display:none;">↺ Ambil Ulang</button>
+  </div>
+
+  <div id="status">Meminta akses lokasi & kamera...</div>
+  <div id="locationStatus" class="info">📍 Lokasi: Menunggu izin...</div>
+
+  <!-- Library piexifjs -->
+  <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const photoPreview = document.getElementById('photoPreview');
+    const switchBtn = document.getElementById('switchBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const retakeBtn = document.getElementById('retakeBtn');
+    const statusEl = document.getElementById('status');
+    const locationStatusEl = document.getElementById('locationStatus');
+
+    let stream = null;
+    let userLocation = null;
+    let capturedImageUrl = null;
+    let facingMode = 'environment';
+
+    // === Konversi ke format EXIF ===
+    function toExifRational(value) {
+      const abs = Math.abs(value);
+      const deg = Math.floor(abs);
+      const min = Math.floor((abs - deg) * 60);
+      const sec = (abs - deg - min / 60) * 3600;
+      return [[deg, 1], [min, 1], [Math.round(sec * 10000), 10000]];
+    }
+
+    // === Dapatkan lokasi ===
+    async function requestLocation() {
+      if (!navigator.geolocation) {
+        locationStatusEl.textContent = "❌ Geolocation tidak didukung";
+        return null;
+      }
+
+      try {
+        const pos = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000
+          });
+        });
+
+        userLocation = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
+
+        locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+        return userLocation;
+
+      } catch (err) {
+        userLocation = null;
+        locationStatusEl.textContent = "⚠️ Lokasi tidak diizinkan atau tidak tersedia";
+        console.warn("Geolocation error:", err);
+        return null;
+      }
+    }
+
+    // === Mulai kamera ===
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode }, 
+          audio: false 
+        });
+        video.srcObject = stream;
+        statusEl.textContent = `Kamera aktif (${facingMode === 'user' ? 'Depan' : 'Belakang'})`;
+      } catch (err) {
+        statusEl.textContent = "❌ Gagal akses kamera: " + err.message;
+        console.error(err);
+      }
+    }
+
+    // === Ganti kamera ===
+    switchBtn.addEventListener('click', () => {
+      facingMode = facingMode === 'user' ? 'environment' : 'user';
+      startCamera();
+    });
+
+    // === Ambil foto ===
+    captureBtn.addEventListener('click', async () => {
+      // Pastikan lokasi sudah diminta
+      if (!userLocation) {
+        await requestLocation(); // Coba lagi
+      }
+
+      const w = video.videoWidth || 640;
+      const h = video.videoHeight || 480;
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+
+      // Gambar frame asli (tanpa mirror!)
+      ctx.drawImage(video, 0, 0, w, h);
+
+      // === Format waktu ===
+      const now = new Date();
+      const timestamp = now.toLocaleString('id-ID', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+      });
+
+      // Atur font untuk pengukuran
+      ctx.font = '16px Arial';
+      ctx.textBaseline = 'top';
+
+      // Buat teks waktu
+      const timestampText = `Waktu: ${timestamp}`;
+      let locText = '';
+      let hasLocation = false;
+
+      if (userLocation) {
+        locText = `Lokasi: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+        hasLocation = true;
+      } else {
+        locText = "Lokasi: Tidak tersedia";
+      }
+
+      // Hitung lebar teks
+      const timestampWidth = ctx.measureText(timestampText).width;
+      const locWidth = ctx.measureText(locText).width;
+      const boxWidth = Math.max(timestampWidth, locWidth) + 20;
+      const boxHeight = hasLocation ? 60 : 35;
+
+      // Gambar kotak hitam transparan
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(10, 10, boxWidth, boxHeight);
+
+      // ✅ PENTING: Set warna teks PUTIH
+      ctx.fillStyle = 'white';
+
+      // Gambar teks waktu
+      ctx.fillText(timestampText, 20, 15);
+
+      // Gambar teks lokasi (jika ada)
+      if (hasLocation) {
+        ctx.fillText(locText, 20, 40);
+      } else {
+        // Tampilkan pesan "Lokasi tidak tersedia"
+        ctx.fillText(locText, 20, 40);
+      }
+
+      // === Simpan sebagai JPEG ===
+      let dataURL = canvas.toDataURL('image/jpeg', 0.92);
+
+      // === Tambahkan EXIF ===
+      if (piexif) {
+        try {
+          let exifObj = piexif.load(dataURL);
+
+          // Tambahkan DateTime
+          const exifDateTime = now.toISOString().replace(/-/g, ':').substring(0, 19).replace('T', ' ');
+          exifObj["0th"][piexif.ImageIFD.DateTime] = exifDateTime;
+          exifObj["Exif"][piexif.ExifIFD.DateTimeOriginal] = exifDateTime;
+          exifObj["Exif"][piexif.ExifIFD.DateTimeDigitized] = exifDateTime;
+
+          // Tambahkan GPS hanya jika userLocation ada
+          if (userLocation) {
+            exifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef] = userLocation.lat >= 0 ? "N" : "S";
+            exifObj["GPS"][piexif.GPSIFD.GPSLatitude] = toExifRational(userLocation.lat);
+            exifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef] = userLocation.lng >= 0 ? "E" : "W";
+            exifObj["GPS"][piexif.GPSIFD.GPSLongitude] = toExifRational(userLocation.lng);
+          }
+
+          // Sisipkan EXIF
+          const exifStr = piexif.dump(exifObj);
+          dataURL = piexif.insert(exifStr, dataURL);
+        } catch (e) {
+          console.error("Gagal tambah EXIF:", e);
+        }
+      }
+
+      // Simpan & tampilkan preview
+      capturedImageUrl = dataURL;
+      photoPreview.src = capturedImageUrl;
+      photoPreview.style.display = 'block';
+
+      // Tampilkan tombol
+      downloadBtn.style.display = 'inline-block';
+      retakeBtn.style.display = 'inline-block';
+      captureBtn.style.display = 'none';
+      switchBtn.disabled = true;
+      statusEl.textContent = "✅ Foto siap diunduh!";
+    });
+
+    // === Unduh ===
+    downloadBtn.addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = capturedImageUrl;
+      a.download = `foto-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.jpg`;
+      a.click();
+    });
+
+    // === Ambil ulang ===
+    retakeBtn.addEventListener('click', () => {
+      photoPreview.style.display = 'none';
+      downloadBtn.style.display = 'none';
+      retakeBtn.style.display = 'none';
+      captureBtn.style.display = 'inline-block';
+      switchBtn.disabled = false;
+      statusEl.textContent = "Siap ambil foto lagi";
+    });
+
+    // === Inisialisasi ===
+    (async () => {
+      await startCamera();
+      await requestLocation();
+
+      // Aktifkan tombol ganti kamera
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cams = devices.filter(d => d.kind === 'videoinput');
+      switchBtn.disabled = cams.length <= 1;
+
+      if (!stream) {
+        statusEl.textContent = "❌ Kamera tidak tersedia";
+      }
+    })();
+  </script>
+</body>
+</html>

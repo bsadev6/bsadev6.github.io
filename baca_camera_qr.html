@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR Scanner + Ganti Kamera</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 10px;
+      background: #f0f0f0;
+    }
+    #video {
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+      background: #000;
+      border-radius: 8px;
+    }
+    #canvas {
+      display: none;
+    }
+    .btn {
+      margin: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    .btn:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+    }
+    #result {
+      margin-top: 15px;
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+      word-break: break-all;
+      display: none;
+    }
+    .highlight {
+      animation: pulse 1s;
+    }
+    @keyframes pulse {
+      0% { background: #ffeb3b; }
+      100% { background: white; }
+    }
+  </style>
+</head>
+<body>
+  <h2>QR Code Scanner</h2>
+  <video id="video" playsinline autoplay muted style="transform: scaleX(-1);"></video>
+  <canvas id="canvas"></canvas>
+
+  <br>
+  <button id="switchBtn" class="btn" disabled>🔄 Ganti Kamera</button>
+  <button id="startBtn" class="btn">▶️ Mulai Kamera</button>
+
+  <div id="result"></div>
+
+  <!-- Load jsQR library -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const resultDiv = document.getElementById('result');
+    const switchBtn = document.getElementById('switchBtn');
+    const startBtn = document.getElementById('startBtn');
+
+    let stream = null;
+    let currentDeviceId = null;
+    let facingMode = 'environment'; // default: kamera belakang
+
+    // Daftar perangkat kamera
+    let videoDevices = [];
+
+    // Ambil daftar kamera
+    async function getCameras() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        videoDevices = devices.filter(device => device.kind === 'videoinput');
+        console.log('Kamera ditemukan:', videoDevices);
+        switchBtn.disabled = videoDevices.length <= 1;
+      } catch (err) {
+        console.error('Gagal enumerasi perangkat:', err);
+      }
+    }
+
+    // Mulai kamera dengan deviceId atau facingMode
+    async function startCamera(deviceId = null) {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      const constraints = deviceId
+        ? { video: { deviceId: { exact: deviceId } }, audio: false }
+        : { video: { facingMode: facingMode }, audio: false };
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = stream;
+
+        // Simpan deviceId saat ini
+        const tracks = stream.getVideoTracks();
+        if (tracks[0]?.getSettings) {
+          currentDeviceId = tracks[0].getSettings().deviceId;
+        }
+
+        startBtn.textContent = '⏸️ Hentikan';
+        switchBtn.disabled = false;
+        resultDiv.style.display = 'none';
+
+        // Mulai scanning QR
+        requestAnimationFrame(scanQR);
+      } catch (err) {
+        console.error('Gagal membuka kamera:', err);
+        alert('Tidak bisa mengakses kamera: ' + err.message);
+      }
+    }
+
+    // Ganti kamera (depan ↔ belakang)
+    switchBtn.addEventListener('click', async () => {
+      if (videoDevices.length === 0) await getCameras();
+
+      if (videoDevices.length > 1) {
+        // Cari deviceId lawan (jika pakai environment → cari user, dst)
+        const currentTrack = stream?.getVideoTracks()[0];
+        const currentId = currentTrack?.getSettings()?.deviceId;
+
+        let nextDevice = null;
+        if (currentId) {
+          // Cari kamera lain
+          nextDevice = videoDevices.find(d => d.deviceId !== currentId);
+        } else {
+          // Gunakan facingMode fallback
+          facingMode = facingMode === 'user' ? 'environment' : 'user';
+          startCamera();
+          return;
+        }
+
+        if (nextDevice) {
+          startCamera(nextDevice.deviceId);
+        }
+      }
+    });
+
+    // Mulai/stop kamera
+    startBtn.addEventListener('click', async () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+        startBtn.textContent = '▶️ Mulai Kamera';
+        resultDiv.style.display = 'none';
+      } else {
+        await getCameras();
+        facingMode = 'environment'; // mulai dengan kamera belakang
+        startCamera();
+      }
+    });
+
+    // Fungsi scan QR setiap frame
+    function scanQR() {
+      if (!stream) return;
+
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+
+      if (width && height) {
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(video, 0, 0, width, height);
+
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
+
+        if (code) {
+          resultDiv.textContent = code.data;
+          resultDiv.style.display = 'block';
+          resultDiv.classList.add('highlight');
+          setTimeout(() => resultDiv.classList.remove('highlight'), 1000);
+          // Opsional: hentikan scanning setelah ketemu
+          // return;
+        }
+      }
+
+      requestAnimationFrame(scanQR);
+    }
+
+    // Inisialisasi
+    getCameras();
+  </script>
+</body>
+</html>

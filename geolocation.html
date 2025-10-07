@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ambil Foto dengan Lokasi</title>
+  <style>
+    #video { width: 640px; height: 480px; background: #000; }
+  </style>
+</head>
+<body>
+  <h2>Kamera + Lokasi</h2>
+  <video id="video" autoplay muted></video>
+  <br><br>
+  <button id="getLocationBtn">📍 Dapatkan Lokasi</button>
+  <button id="captureBtn" disabled>📸 Ambil Foto dengan Lokasi</button>
+  <p id="status">Status: Menunggu lokasi...</p>
+
+  <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const statusEl = document.getElementById('status');
+
+    let stream = null;
+    let userLocation = null; // { latitude, longitude }
+
+    // Mulai kamera
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then(s => {
+        stream = s;
+        video.srcObject = stream;
+      });
+
+    // Dapatkan lokasi pengguna
+    getLocationBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        statusEl.textContent = "Geolocation tidak didukung browser ini.";
+        return;
+      }
+
+      statusEl.textContent = "Meminta izin lokasi...";
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          statusEl.textContent = `Lokasi: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+          captureBtn.disabled = false;
+        },
+        (error) => {
+          statusEl.textContent = `Error lokasi: ${error.message}`;
+          console.error("Geolocation error:", error);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+
+    // Ambil foto + tambahkan lokasi ke EXIF
+    captureBtn.addEventListener('click', () => {
+      if (!userLocation) return;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Dapatkan data gambar sebagai JPEG (EXIF hanya bekerja di JPEG)
+      let dataURL = canvas.toDataURL('image/jpeg', 0.92);
+
+      // Konversi ke ArrayBuffer
+      function dataURLToBuffer(dataURL) {
+        const byteString = atob(dataURL.split(',')[1]);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        return ab;
+      }
+
+      // Fungsi untuk konversi desimal ke format EXIF (derajat, menit, detik)
+      function toExifRational(value) {
+        const abs = Math.abs(value);
+        const deg = Math.floor(abs);
+        const min = Math.floor((abs - deg) * 60);
+        const sec = ((abs - deg - min / 60) * 3600 * 10000) / 10000;
+
+        return [[deg, 1], [min, 1], [Math.round(sec * 10000), 10000]];
+      }
+
+      // Buat objek EXIF
+      const exifObj = piexif.load(dataURL);
+      
+      // Set GPS Latitude & Longitude
+      exifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef] = userLocation.lat >= 0 ? "N" : "S";
+      exifObj["GPS"][piexif.GPSIFD.GPSLatitude] = toExifRational(userLocation.lat);
+      exifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef] = userLocation.lng >= 0 ? "E" : "W";
+      exifObj["GPS"][piexif.GPSIFD.GPSLongitude] = toExifRational(userLocation.lng);
+
+      // Opsional: tambahkan waktu
+      const now = new Date();
+      exifObj["0th"][piexif.ImageIFD.DateTime] = now.toISOString().replace(/T/, ' ').replace(/\..+/, '');
+
+      // Gabungkan kembali EXIF ke gambar
+      const exifStr = piexif.dump(exifObj);
+      const inserted = piexif.insert(exifStr, dataURL);
+
+      // Trigger download
+      const link = document.createElement('a');
+      link.href = inserted;
+      link.download = `foto-lokasi-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      statusEl.textContent = "Foto dengan lokasi berhasil diunduh!";
+    });
+  </script>
+</body>
+</html>

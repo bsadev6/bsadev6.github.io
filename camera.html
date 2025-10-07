@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Akses Kamera & Mikrofon</title>
+</head>
+<body>
+  <h1>Kamera & Mikrofon</h1>
+  <video id="video" width="640" height="480" autoplay muted style="transform: scaleX(-1);"></video>
+  <button id="startBtn">Mulai</button>
+  <button id="stopBtn" disabled>Hentikan</button>
+
+  <script>
+    const video = document.getElementById('video');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    let stream = null;
+
+    startBtn.addEventListener('click', async () => {
+      try {
+        // Minta akses ke kamera dan mikrofon
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
+        });
+
+        // Tampilkan stream di elemen <video>
+        video.srcObject = stream;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+      } catch (err) {
+        console.error('Gagal mengakses kamera/mikrofon:', err);
+        alert('Izin ditolak atau perangkat tidak tersedia.');
+      }
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if (stream) {
+        // Hentikan semua track (kamera & mikrofon)
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+    });
+  </script>
+</body>
+</html>

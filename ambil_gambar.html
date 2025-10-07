@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ambil Foto dari Kamera</title>
+  <style>
+    #video, #preview {
+      width: 640px;
+      height: 480px;
+      background: #000;
+    }
+    #preview {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>Kamera</h2>
+  <video id="video" autoplay muted style="transform: scaleX(-1);"></video>
+  <br><br>
+  <button id="captureBtn">📸 Ambil Foto</button>
+  <button id="downloadBtn" style="display:none;">⬇️ Unduh Foto</button>
+  <br><br>
+  <img id="preview" alt="Preview">
+
+  <script>
+    const video = document.getElementById('video');
+    const preview = document.getElementById('preview');
+    const captureBtn = document.getElementById('captureBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    let capturedImage = null;
+
+    // Mulai kamera
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        console.error("Gagal mengakses kamera:", err);
+        alert("Izin kamera ditolak atau tidak tersedia.");
+      });
+
+    // Ambil screenshot
+    captureBtn.addEventListener('click', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+
+      // Jika kamu pakai mirror (scaleX(-1)), balik lagi saat capture
+      // ctx.translate(canvas.width, 0);
+      // ctx.scale(-1, 1);
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      capturedImage = canvas.toDataURL('image/png'); // format PNG
+
+      // Tampilkan preview
+      preview.src = capturedImage;
+      preview.style.display = 'block';
+      downloadBtn.style.display = 'inline-block';
+    });
+
+    // Unduh gambar
+    downloadBtn.addEventListener('click', () => {
+      if (!capturedImage) return;
+
+      const link = document.createElement('a');
+      link.href = capturedImage;
+      link.download = 'kamera-foto-' + new Date().toISOString().slice(0,19).replace(/:/g,'-') + '.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  </script>
+</body>
+</html>
