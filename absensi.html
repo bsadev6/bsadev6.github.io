@@ -70,6 +70,7 @@
 <body>
   <h2>📋 Absensi Karyawan</h2>
 
+  <div id="status">Masukkan ID & klik "Mulai Absensi"</div>
   <!-- Input ID Karyawan -->
   <div class="input-group">
     <input type="text" id="userIdInput" placeholder="Masukkan ID Karyawan" autocomplete="off">
@@ -87,6 +88,7 @@
     style="display:none;"
   ></video>
   
+  <div id="map"></div>
   <img id="photoPreview" alt="Foto Absensi">
 
   <div class="controls">
@@ -97,17 +99,12 @@
     <button id="retakeBtn" class="btn" style="display:none;">↺ Ambil Ulang</button>
   </div>
 
-  <div id="status">Masukkan ID & klik "Mulai Absensi"</div>
-  <div id="map"></div>
 
   <!-- Libraries -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
   
   <script>
-    // === Konfigurasi ===
-    const WEB_APP_URL = 'https://script.google.com/macros/s/ABC123/exec'; // ← GANTI DENGAN URL-MU
-
     // === Elemen DOM ===
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
@@ -124,7 +121,6 @@
     let stream = null;
     let userLocation = null;
     let capturedImageUrl = null;
-    let capturedImageBlob = null;
     let facingMode = 'environment';
     let map = null;
 
@@ -246,25 +242,39 @@
       ctx.fillText(idText, 20, 35);
       if (userLocation) ctx.fillText(locText, 20, 55);
 
-      // Simpan sebagai JPEG
-      capturedImageUrl = canvas.toDataURL('image/jpeg', 0.92);
+      // === SIMPAN SEBAGAI JPEG DENGAN EXIF ===
+      let dataURL = canvas.toDataURL('image/jpeg', 0.92);
+
+      if (piexif && userLocation) {
+        try {
+          let exifObj = piexif.load(dataURL);
+          const exifDateTime = now.toISOString().replace(/-/g, ':').substring(0, 19).replace('T', ' ');
+          exifObj["0th"][piexif.ImageIFD.DateTime] = exifDateTime;
+          exifObj["Exif"][piexif.ExifIFD.DateTimeOriginal] = exifDateTime;
+          exifObj["Exif"][piexif.ExifIFD.DateTimeDigitized] = exifDateTime;
+          exifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef] = userLocation.lat >= 0 ? "N" : "S";
+          exifObj["GPS"][piexif.GPSIFD.GPSLatitude] = toExifRational(userLocation.lat);
+          exifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef] = userLocation.lng >= 0 ? "E" : "W";
+          exifObj["GPS"][piexif.GPSIFD.GPSLongitude] = toExifRational(userLocation.lng);
+          dataURL = piexif.insert(piexif.dump(exifObj), dataURL);
+        } catch (e) {
+          console.error("Gagal tambah EXIF:", e);
+        }
+      }
+
+      capturedImageUrl = dataURL;
       photoPreview.src = capturedImageUrl;
       photoPreview.style.display = 'block';
-
-      // Simpan Blob untuk upload
-      canvas.toBlob(blob => {
-        capturedImageBlob = blob;
-      }, 'image/jpeg', 0.92);
 
       // Tampilkan tombol
       downloadBtn.style.display = 'inline-block';
       retakeBtn.style.display = 'inline-block';
       captureBtn.style.display = 'none';
       switchBtn.disabled = true;
-      statusEl.textContent = "Foto siap dikirim!";
+      statusEl.textContent = "Foto siap diunduh!";
     });
 
-    // === Unduh Foto ===
+    // === HANYA UNDUH (1x klik) ===
     downloadBtn.addEventListener('click', () => {
       const a = document.createElement('a');
       a.href = capturedImageUrl;
@@ -282,46 +292,6 @@
       statusEl.textContent = "Siap ambil foto lagi";
     });
 
-    // === Kirim ke Google (Sheets + Drive) ===
-    async function submitToGoogle() {
-      const userId = userIdInput.value.trim();
-      if (!userId) {
-        alert("ID Karyawan wajib diisi!");
-        return false;
-      }
-
-      if (!capturedImageBlob) {
-        alert("Foto belum diambil!");
-        return false;
-      }
-
-      statusEl.textContent = "Mengirim data ke server...";
-
-      try {
-        // Baca blob sebagai array buffer
-        const arrayBuffer = await capturedImageBlob.arrayBuffer();
-        const binary = Array.from(new Uint8Array(arrayBuffer)).map(b => String.fromCharCode(b)).join('');
-        const base64 = btoa(binary);
-
-        // Kirim ke Apps Script
-        const response = await fetch(WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `metadata=${encodeURIComponent(JSON.stringify({
-            userId: userId,
-            lat: userLocation?.lat || null,
-            lng: userLocation?.lng || null
-          }))}&imageData=${base64}`
-        });
-
-        const result = await response.json();
-        return result.success;
-      } catch (err) {
-        console.error("Error kirim ke Google:", err);
-        return false;
-      }
-    }
-
     // === Mulai Aplikasi ===
     startAppBtn.addEventListener('click', async () => {
       const userId = userIdInput.value.trim();
@@ -337,21 +307,6 @@
       const devices = await navigator.mediaDevices.enumerateDevices();
       const cams = devices.filter(d => d.kind === 'videoinput');
       switchBtn.disabled = cams.length <= 1;
-    });
-
-    // === Kirim saat klik download (opsional) ===
-    downloadBtn.addEventListener('click', async () => {
-      const success = await submitToGoogle();
-      if (success) {
-        statusEl.textContent = "✅ Absensi berhasil disimpan ke Google!";
-      } else {
-        statusEl.textContent = "❌ Gagal menyimpan ke Google";
-      }
-      // Tetap unduh file
-      const a = document.createElement('a');
-      a.href = capturedImageUrl;
-      a.download = `absensi-${userIdInput.value}-${Date.now()}.jpg`;
-      a.click();
     });
   </script>
 </body>
