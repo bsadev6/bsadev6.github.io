@@ -210,7 +210,7 @@
           });
         });
         userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+        locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat}, ${userLocation.lng}`;
         initMap(userLocation.lat, userLocation.lng);
         return userLocation;
       } catch (err) {
