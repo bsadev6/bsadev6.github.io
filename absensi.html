@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta http-equiv="Access-Control-Allow-Origin" content="*">
   <title>Absensi Karyawan</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
@@ -105,7 +108,9 @@
   <!-- Libraries -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
-  
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <script>
     // === Elemen DOM ===
     const video = document.getElementById('video');
@@ -146,6 +151,8 @@
         attribution: '&copy; OpenStreetMap'
       }).addTo(map);
       L.marker([lat, lng]).addTo(map).bindPopup('Lokasi Absensi').openPopup();
+
+      startCamera();
     }
 
     // === Lokasi ===
@@ -308,11 +315,12 @@
         return;
       }
 
+      login();
       startAppBtn.style.display = 'none';
       switchBtn.style.display = 'inline-block';
       captureBtn.style.display = 'inline-block';
       
-      await startCamera();
+      // await startCamera();
       await requestLocation();
 
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -386,6 +394,55 @@
             return false;
         }
     }
+
+    function login()
+    {
+        
+        $.ajax({
+            type: "POST",
+            // url: "https://880htzws-9988.asse.devtunnels.ms/api/users/login",
+            url: "http://localhost:9988/api/users/login",
+            data: {
+                "username":"admin",
+                "password":"123bsa",
+            },
+            dataType: "json",
+            success: function (response) {
+
+                // console.log(response.accessToken);
+                // console.log(response.refreshToken);
+
+                if(response.accessToken){
+                    Swal.fire(
+                        'Success!',
+                        'Data berhasil login',
+                        'success'
+                    )     
+                }else{
+                    Swal.fire(
+                        'Failed!',
+                        'Data gagal login',
+                        'warning'
+                    )
+                }
+
+
+            },
+            error: function(error) {
+
+                Swal.fire(
+                    'Failed!',
+                    error.responseJSON.message,
+                    'error'
+                )
+                return false;
+            }
+        });
+    }
+
+    $(document).ready(function () {
+      // login();
+    });
   </script>
 </body>
 </html>
