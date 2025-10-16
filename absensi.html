@@ -102,6 +102,7 @@
                   <!-- Tombol mulai -->
                   <button id="startAppBtn" class="btn primary">▶️ Mulai Absensi</button>
                 
+                  <div id="locationStatus" class="info">📍 Lokasi: Menunggu izin...</div>
                   <div id="map"></div>
                   <video 
                     id="video" 
@@ -164,6 +165,7 @@
     const statusEl = document.getElementById('status');
     const sendBtn =  document.getElementById('sendBtn');
     const statuSend = document.getElementById('statuSend');
+    const locationStatusEl = document.getElementById('locationStatus');
 
     // === Variabel Global ===
     let stream = null;
@@ -208,7 +210,7 @@
           });
         });
         userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        statusEl.textContent = `Lokasi: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+        locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
         initMap(userLocation.lat, userLocation.lng);
         return userLocation;
       } catch (err) {
