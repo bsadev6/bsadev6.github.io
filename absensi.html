@@ -204,13 +204,24 @@
         }
 
         if (found) {
-          // msg.className = 'success';
-          // msg.innerHTML = `✅ Login berhasil!<br>ID: ${id}`;
-           alert(`✅ Login berhasil!<br>ID: ${id}`);
+         
+          alert(`✅ Login berhasil!<br>ID: ${id}`);
           // Redirect atau lanjut ke halaman absen
+          // startAppBtn.style.display = 'none';
+          switchBtn.style.display = 'inline-block';
+          captureBtn.style.display = 'inline-block';
+          
+          await startCamera();
+          await requestLocation();
+
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const cams = devices.filter(d => d.kind === 'videoinput');
+          switchBtn.disabled = cams.length <= 1;
         } else {
           // msg.className = 'error';
           // msg.textContent = 'ID tidak ditemukan!';
+          switchBtn.style.display = 'none';
+          captureBtn.style.display = 'none';
           alert('ID tidak ditemukan!');
         }
       } catch (e) {
@@ -416,16 +427,7 @@
       }
 
       login();
-      startAppBtn.style.display = 'none';
-      switchBtn.style.display = 'inline-block';
-      captureBtn.style.display = 'inline-block';
       
-      // await startCamera();
-      // await requestLocation();
-
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const cams = devices.filter(d => d.kind === 'videoinput');
-      switchBtn.disabled = cams.length <= 1;
     });
 
     // === Kirim data absensi ke Google Apps Script ===
