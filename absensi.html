@@ -83,7 +83,7 @@
           <div class="row justify-content-center">
             <div class="col-sm-12">
               <input type="text" id="userIdInput" placeholder="Masukkan ID Karyawan" autocomplete="off">
-             
+              <button id="startAppBtn" class="btn primary">▶️ Login</button>
             </div>
           </div>
         </div>
@@ -100,8 +100,9 @@
               <div class="row justify-content-center">
                 <div class="col-sm-12">
                   <!-- Tombol mulai -->
-                  <button id="startAppBtn" class="btn primary">▶️ Mulai Absensi</button>
+                  
                 
+                  <!-- <button onclick="requestLocation()" class="btn btn-sm btn-warning">📍 Lokasi</button> -->
                   <div id="locationStatus" class="info">📍 Lokasi: Menunggu izin...</div>
                   <div id="map"></div>
                   <video 
@@ -198,6 +199,7 @@
 
     // === Lokasi ===
     async function requestLocation() {
+      console.log('test');
       if (!navigator.geolocation) {
         statusEl.textContent = "Geolocation tidak didukung";
         return null;
@@ -210,6 +212,7 @@
           });
         });
         userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        locationStatusEl.style.display='block';
         locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat}, ${userLocation.lng}`;
         initMap(userLocation.lat, userLocation.lng);
         return userLocation;
@@ -277,7 +280,7 @@
 
       const timestampText = `Waktu: ${timestamp}`;
       const locText = userLocation ? 
-        `Lokasi: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}` : 
+        `Lokasi: ${userLocation.lat}, ${userLocation.lng}` : 
         "Lokasi: Tidak tersedia";
       const idText = `ID: ${userId}`;
 
