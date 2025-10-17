@@ -249,6 +249,89 @@
     });
 
     // === Ambil Foto ===
+    // captureBtn.addEventListener('click', async () => {
+    //   const userId = userIdInput.value.trim();
+    //   if (!userId) {
+    //     alert("Harap masukkan ID Karyawan!");
+    //     return;
+    //   }
+
+    //   if (!userLocation) await requestLocation();
+
+    //   const w = video.videoWidth || 640;
+    //   const h = video.videoHeight || 480;
+    //   const canvas = document.createElement('canvas');
+    //   canvas.width = w;
+    //   canvas.height = h;
+    //   const ctx = canvas.getContext('2d');
+
+    //   ctx.drawImage(video, 0, 0, w, h);
+
+    //   // Tambahkan teks
+    //   const now = new Date();
+    //   const timestamp = now.toLocaleString('id-ID', {
+    //     year: 'numeric', month: '2-digit', day: '2-digit',
+    //     hour: '2-digit', minute: '2-digit', second: '2-digit',
+    //     hour12: false
+    //   });
+
+    //   ctx.font = '16px Arial';
+    //   ctx.textBaseline = 'top';
+
+    //   const timestampText = `Waktu: ${timestamp}`;
+    //   const locText = userLocation ? 
+    //     `Lokasi: ${userLocation.lat}, ${userLocation.lng}` : 
+    //     "Lokasi: Tidak tersedia";
+    //   const idText = `ID: ${userId}`;
+
+    //   const tw = ctx.measureText(timestampText).width;
+    //   const lw = ctx.measureText(locText).width;
+    //   const iw = ctx.measureText(idText).width;
+    //   const boxW = Math.max(tw, lw, iw) + 20;
+    //   const boxH = userLocation ? 75 : 60;
+
+    //   ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    //   ctx.fillRect(10, 10, boxW, boxH);
+    //   ctx.fillStyle = 'white';
+    //   ctx.fillText(timestampText, 20, 15);
+    //   ctx.fillText(idText, 20, 35);
+    //   if (userLocation) ctx.fillText(locText, 20, 55);
+
+    //   // === SIMPAN SEBAGAI JPEG DENGAN EXIF ===
+    //   let dataURL = canvas.toDataURL('image/jpeg', 0.92);
+
+    //   if (piexif && userLocation) {
+    //     try {
+    //       let exifObj = piexif.load(dataURL);
+    //       const exifDateTime = now.toISOString().replace(/-/g, ':').substring(0, 19).replace('T', ' ');
+    //       exifObj["0th"][piexif.ImageIFD.DateTime] = exifDateTime;
+    //       exifObj["Exif"][piexif.ExifIFD.DateTimeOriginal] = exifDateTime;
+    //       exifObj["Exif"][piexif.ExifIFD.DateTimeDigitized] = exifDateTime;
+    //       exifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef] = userLocation.lat >= 0 ? "N" : "S";
+    //       exifObj["GPS"][piexif.GPSIFD.GPSLatitude] = toExifRational(userLocation.lat);
+    //       exifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef] = userLocation.lng >= 0 ? "E" : "W";
+    //       exifObj["GPS"][piexif.GPSIFD.GPSLongitude] = toExifRational(userLocation.lng);
+    //       dataURL = piexif.insert(piexif.dump(exifObj), dataURL);
+    //     } catch (e) {
+    //       console.error("Gagal tambah EXIF:", e);
+    //     }
+    //   }
+
+    //   capturedImageUrl = dataURL;
+    //   photoPreview.src = capturedImageUrl;
+    //   photoPreview.style.display = 'block';
+
+    //   // Tampilkan tombol
+    //   downloadBtn.style.display = 'inline-block';
+    //   retakeBtn.style.display = 'inline-block';
+    //   sendBtn.style.display = 'inline-block';
+    //   captureBtn.style.display = 'none';
+    //   switchBtn.disabled = true;
+    //   statusEl.textContent = "Foto siap diunduh!";
+    //   sendBtn.addEventListener('click', submitToGoogle)
+    // });
+
+    
     captureBtn.addEventListener('click', async () => {
       const userId = userIdInput.value.trim();
       if (!userId) {
@@ -265,9 +348,14 @@
       canvas.height = h;
       const ctx = canvas.getContext('2d');
 
-      ctx.drawImage(video, 0, 0, w, h);
+      // === GAMBAR VIDEO TANPA MIRROR (FLIP HORIZONTAL) ===
+      ctx.save();
+      ctx.translate(w, 0);      // Pindahkan origin ke kanan
+      ctx.scale(-1, 1);         // Balik sumbu X (mirror horizontal)
+      ctx.drawImage(video, 0, 0, w, h); // Gambar video dalam keadaan terbalik → hasilnya normal
+      ctx.restore();            // Kembalikan transformasi agar teks tidak ikut terbalik
 
-      // Tambahkan teks
+      // === TAMBAHKAN TEKS INFORMASI ===
       const now = new Date();
       const timestamp = now.toLocaleString('id-ID', {
         year: 'numeric', month: '2-digit', day: '2-digit',
@@ -290,14 +378,17 @@
       const boxW = Math.max(tw, lw, iw) + 20;
       const boxH = userLocation ? 75 : 60;
 
+      // Kotak latar belakang transparan
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
       ctx.fillRect(10, 10, boxW, boxH);
+
+      // Teks putih di atas kotak
       ctx.fillStyle = 'white';
       ctx.fillText(timestampText, 20, 15);
       ctx.fillText(idText, 20, 35);
       if (userLocation) ctx.fillText(locText, 20, 55);
 
-      // === SIMPAN SEBAGAI JPEG DENGAN EXIF ===
+      // === SIMPAN SEBAGAI JPEG DENGAN EXIF (JIKA ADA LOKASI) ===
       let dataURL = canvas.toDataURL('image/jpeg', 0.92);
 
       if (piexif && userLocation) {
@@ -317,20 +408,23 @@
         }
       }
 
+      // === TAMPILKAN HASIL ===
       capturedImageUrl = dataURL;
       photoPreview.src = capturedImageUrl;
       photoPreview.style.display = 'block';
 
-      // Tampilkan tombol
+      // Tampilkan tombol aksi
       downloadBtn.style.display = 'inline-block';
       retakeBtn.style.display = 'inline-block';
       sendBtn.style.display = 'inline-block';
       captureBtn.style.display = 'none';
       switchBtn.disabled = true;
       statusEl.textContent = "Foto siap diunduh!";
-      sendBtn.addEventListener('click', submitToGoogle)
-    });
 
+      // Pastikan event listener tidak double
+      sendBtn.removeEventListener('click', submitToGoogle); // hindari duplikat
+      sendBtn.addEventListener('click', submitToGoogle);
+    });
     // === HANYA UNDUH (1x klik) ===
     downloadBtn.addEventListener('click', () => {
       const a = document.createElement('a');
@@ -359,12 +453,12 @@
         return;
       }
 
-      login();
+      // login();
       startAppBtn.style.display = 'none';
       switchBtn.style.display = 'inline-block';
       captureBtn.style.display = 'inline-block';
       
-      // await startCamera();
+      await startCamera();
       await requestLocation();
 
       const devices = await navigator.mediaDevices.enumerateDevices();
