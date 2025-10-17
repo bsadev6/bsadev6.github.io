@@ -100,9 +100,7 @@
               <div class="row justify-content-center">
                 <div class="col-sm-12">
                   <!-- Tombol mulai -->
-                  
                 
-                  <!-- <button onclick="requestLocation()" class="btn btn-sm btn-warning">📍 Lokasi</button> -->
                   <div id="locationStatus" class="info">📍 Lokasi: Menunggu izin...</div>
                   <div id="map"></div>
                   <video 
@@ -156,7 +154,7 @@
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
     // const PROXIED_URL = "https://corsproxy.io/?" + encodeURIComponent(SHEET_CSV_URL);
-    const PROXIED_URL =  "https://api.allorigins.win/raw?url= "+ encodeURIComponent(SHEET_CSV_URL);
+    // const PROXIED_URL =  "https://api.allorigins.win/raw?url= "+ encodeURIComponent(SHEET_CSV_URL);
    
     
     const video = document.getElementById('video');
@@ -185,8 +183,8 @@
   
 
       try {
-        // const response = await fetch(SHEET_CSV_URL);c
-        const response = await fetch(PROXIED_URL);
+        const response = await fetch(SHEET_CSV_URL);
+        // const response = await fetch(PROXIED_URL);
         const csv = await response.text();
         const lines = csv.split('\n').slice(1); // skip header
 
