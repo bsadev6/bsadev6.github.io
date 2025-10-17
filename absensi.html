@@ -180,8 +180,7 @@
 
     async function login() {
       const id = document.getElementById('userIdInput').value.trim();
-  
-
+      let nama='';
       try {
         const response = await fetch(SHEET_CSV_URL);
         // const response = await fetch(PROXIED_URL);
@@ -193,7 +192,7 @@
           if (!line.trim()) continue;
           const cols = line.split(',');
           const sheetId = cols[0]?.trim(); // kolom pertama = ID
-          const nama = cols[1]?.trim(); // kolom kedua = Nama
+          nama = cols[1]?.trim(); // kolom kedua = Nama
           if (sheetId === id) {
             found = true;
             break;
@@ -223,7 +222,7 @@
       } catch (e) {
         // msg.className = 'error';
         // msg.textContent = 'Gagal memuat data. Pastikan sheet dipublikasikan.';
-        alert('Gagal memuat data. Pastikan sheet dipublikasikan.'+e);
+        alert('Gagal memuat data.'+e);
         console.error(e);
       }
     }
