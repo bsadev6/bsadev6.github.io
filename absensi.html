@@ -155,7 +155,10 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-
+    // const PROXIED_URL = "https://corsproxy.io/?" + encodeURIComponent(SHEET_CSV_URL);
+    const PROXIED_URL =  "https://api.allorigins.win/raw?url= "+ encodeURIComponent(SHEET_CSV_URL);
+   
+    
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
     const mapEl = document.getElementById('map');
@@ -177,18 +180,13 @@
     let facingMode = 'user'; // 'user' atau 'environment'
     let map = null;
 
-     async function login() {
+    async function login() {
       const id = document.getElementById('userIdInput').value.trim();
-      // const msg = document.getElementById('message');
-
-      // if (!id) {
-      //   msg.className = 'error';
-      //   msg.textContent = 'ID tidak boleh kosong!';
-      //   return;
-      // }
+  
 
       try {
-        const response = await fetch(SHEET_CSV_URL);
+        // const response = await fetch(SHEET_CSV_URL);c
+        const response = await fetch(PROXIED_URL);
         const csv = await response.text();
         const lines = csv.split('\n').slice(1); // skip header
 
@@ -197,6 +195,7 @@
           if (!line.trim()) continue;
           const cols = line.split(',');
           const sheetId = cols[0]?.trim(); // kolom pertama = ID
+          const nama = cols[1]?.trim(); // kolom kedua = Nama
           if (sheetId === id) {
             found = true;
             break;
@@ -205,21 +204,20 @@
 
         if (found) {
          
-          alert(`✅ Login berhasil!<br>ID: ${id}`);
+          alert(`✅ Login berhasil!<br>ID: ${id}-${nama}`);
           // Redirect atau lanjut ke halaman absen
           // startAppBtn.style.display = 'none';
           switchBtn.style.display = 'inline-block';
           captureBtn.style.display = 'inline-block';
           
-          await startCamera();
           await requestLocation();
+          // await startCamera();
 
           const devices = await navigator.mediaDevices.enumerateDevices();
           const cams = devices.filter(d => d.kind === 'videoinput');
           switchBtn.disabled = cams.length <= 1;
         } else {
-          // msg.className = 'error';
-          // msg.textContent = 'ID tidak ditemukan!';
+         
           switchBtn.style.display = 'none';
           captureBtn.style.display = 'none';
           alert('ID tidak ditemukan!');
@@ -256,7 +254,7 @@
 
     // === Lokasi ===
     async function requestLocation() {
-      console.log('test');
+      
       if (!navigator.geolocation) {
         statusEl.textContent = "Geolocation tidak didukung";
         return null;
@@ -283,6 +281,7 @@
 
     // === Kamera ===
     async function startCamera() {
+
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode },
@@ -430,116 +429,7 @@
       
     });
 
-    // === Kirim data absensi ke Google Apps Script ===
-    async function submitToGoogle() {
-        const userId = userIdInput.value.trim();
-        if (!userId) {
-            alert("ID Karyawan wajib diisi!");
-            return false;
-        }
-
-        if (!capturedImageUrl) {
-            alert("Foto belum diambil!");
-            return false;
-        }
-
-        // Tampilkan status loading
-        const originalText = statusEl.textContent;
-        statuSend.textContent = "📤 Mengirim ke Google...";
-
-        try {
-            // Ambil data gambar sebagai Blob
-            const response = await fetch(capturedImageUrl);
-            const blob = await response.blob();
-
-            // Baca Blob sebagai ArrayBuffer
-            const arrayBuffer = await blob.arrayBuffer();
-            const bytes = new Uint8Array(arrayBuffer);
-            let binary = '';
-            for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
-            }
-            const base64Data = btoa(binary);
-
-            // Siapkan metadata
-            const metadata = {
-                userId: userId,
-                lat: userLocation?.lat || null,
-                lng: userLocation?.lng || null,
-                timestamp: new Date().toISOString()
-            };
-
-            // URL Web App dari Google Apps Script (GANTI DENGAN MILIKMU!)
-            const WEB_APP_URL = 'https://script.google.com/macros/s/ABC123/exec'; // ← GANTI!
-
-            // Kirim ke Google Apps Script
-            const submitResponse = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `metadata=${encodeURIComponent(JSON.stringify(metadata))}&imageData=${encodeURIComponent(base64Data)}`
-            });
-
-            const result = await submitResponse.json();
-
-            if (result.success) {
-                statuSend.textContent = "✅ Data absensi berhasil disimpan ke Google!";
-                return true;
-            } else {
-                throw new Error(result.error || "Gagal menyimpan ke Google");
-            }
-
-        } catch (err) {
-            console.error("Error kirim ke Google:", err);
-            statuSend.textContent = "❌ Gagal kirim ke Google: " + (err.message || "Error tidak dikenal");
-            return false;
-        }
-    }
-
-    // function login()
-    // {
-        
-    //     $.ajax({
-    //         type: "POST",
-    //         url: "http://localhost:9988/api/users/login",
-    //         data: {
-    //             "username":"admin",
-    //             "password":"123bsa",
-    //         },
-    //         dataType: "json",
-    //         success: function (response) {
-
-    //             // console.log(response.accessToken);
-    //             // console.log(response.refreshToken);
-
-    //             if(response.accessToken){
-    //                 Swal.fire(
-    //                     'Success!',
-    //                     'Data berhasil login',
-    //                     'success'
-    //                 )     
-    //             }else{
-    //                 Swal.fire(
-    //                     'Failed!',
-    //                     'Data gagal login',
-    //                     'warning'
-    //                 )
-    //             }
-
-
-    //         },
-    //         error: function(error) {
-
-    //             Swal.fire(
-    //                 'Failed!',
-    //                 error.responseJSON.message,
-    //                 'error'
-    //             )
-    //             return false;
-    //         }
-    //     });
-    // }
+  
 
     $(document).ready(function () {
       // login();
