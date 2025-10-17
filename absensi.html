@@ -79,7 +79,7 @@
     <div class="col-sm-3">
       <div class="card">
         <div class="card-body">
-          <div id="status">Masukkan ID & klik "Mulai Absensi"</div>
+          <div id="status">Masukkan ID & klik "Login"</div>
           <div class="row justify-content-center">
             <div class="col-sm-12">
               <input type="text" id="userIdInput" placeholder="Masukkan ID Karyawan" autocomplete="off">
@@ -154,6 +154,8 @@
 
   <script>
     // === Elemen DOM ===
+    const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
+
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
     const mapEl = document.getElementById('map');
@@ -174,6 +176,50 @@
     let capturedImageUrl = null;
     let facingMode = 'user'; // 'user' atau 'environment'
     let map = null;
+
+     async function login() {
+      const id = document.getElementById('userIdInput').value.trim();
+      // const msg = document.getElementById('message');
+
+      // if (!id) {
+      //   msg.className = 'error';
+      //   msg.textContent = 'ID tidak boleh kosong!';
+      //   return;
+      // }
+
+      try {
+        const response = await fetch(SHEET_CSV_URL);
+        const csv = await response.text();
+        const lines = csv.split('\n').slice(1); // skip header
+
+        let found = false;
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const cols = line.split(',');
+          const sheetId = cols[0]?.trim(); // kolom pertama = ID
+          if (sheetId === id) {
+            found = true;
+            break;
+          }
+        }
+
+        if (found) {
+          // msg.className = 'success';
+          // msg.innerHTML = `✅ Login berhasil!<br>ID: ${id}`;
+           alert(`✅ Login berhasil!<br>ID: ${id}`);
+          // Redirect atau lanjut ke halaman absen
+        } else {
+          // msg.className = 'error';
+          // msg.textContent = 'ID tidak ditemukan!';
+          alert('ID tidak ditemukan!');
+        }
+      } catch (e) {
+        // msg.className = 'error';
+        // msg.textContent = 'Gagal memuat data. Pastikan sheet dipublikasikan.';
+        alert('Gagal memuat data. Pastikan sheet dipublikasikan.');
+        console.error(e);
+      }
+    }
 
     // === Helper: Konversi EXIF ===
     function toExifRational(value) {
@@ -248,90 +294,6 @@
       await startCamera();
     });
 
-    // === Ambil Foto ===
-    // captureBtn.addEventListener('click', async () => {
-    //   const userId = userIdInput.value.trim();
-    //   if (!userId) {
-    //     alert("Harap masukkan ID Karyawan!");
-    //     return;
-    //   }
-
-    //   if (!userLocation) await requestLocation();
-
-    //   const w = video.videoWidth || 640;
-    //   const h = video.videoHeight || 480;
-    //   const canvas = document.createElement('canvas');
-    //   canvas.width = w;
-    //   canvas.height = h;
-    //   const ctx = canvas.getContext('2d');
-
-    //   ctx.drawImage(video, 0, 0, w, h);
-
-    //   // Tambahkan teks
-    //   const now = new Date();
-    //   const timestamp = now.toLocaleString('id-ID', {
-    //     year: 'numeric', month: '2-digit', day: '2-digit',
-    //     hour: '2-digit', minute: '2-digit', second: '2-digit',
-    //     hour12: false
-    //   });
-
-    //   ctx.font = '16px Arial';
-    //   ctx.textBaseline = 'top';
-
-    //   const timestampText = `Waktu: ${timestamp}`;
-    //   const locText = userLocation ? 
-    //     `Lokasi: ${userLocation.lat}, ${userLocation.lng}` : 
-    //     "Lokasi: Tidak tersedia";
-    //   const idText = `ID: ${userId}`;
-
-    //   const tw = ctx.measureText(timestampText).width;
-    //   const lw = ctx.measureText(locText).width;
-    //   const iw = ctx.measureText(idText).width;
-    //   const boxW = Math.max(tw, lw, iw) + 20;
-    //   const boxH = userLocation ? 75 : 60;
-
-    //   ctx.fillStyle = 'rgba(0,0,0,0.7)';
-    //   ctx.fillRect(10, 10, boxW, boxH);
-    //   ctx.fillStyle = 'white';
-    //   ctx.fillText(timestampText, 20, 15);
-    //   ctx.fillText(idText, 20, 35);
-    //   if (userLocation) ctx.fillText(locText, 20, 55);
-
-    //   // === SIMPAN SEBAGAI JPEG DENGAN EXIF ===
-    //   let dataURL = canvas.toDataURL('image/jpeg', 0.92);
-
-    //   if (piexif && userLocation) {
-    //     try {
-    //       let exifObj = piexif.load(dataURL);
-    //       const exifDateTime = now.toISOString().replace(/-/g, ':').substring(0, 19).replace('T', ' ');
-    //       exifObj["0th"][piexif.ImageIFD.DateTime] = exifDateTime;
-    //       exifObj["Exif"][piexif.ExifIFD.DateTimeOriginal] = exifDateTime;
-    //       exifObj["Exif"][piexif.ExifIFD.DateTimeDigitized] = exifDateTime;
-    //       exifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef] = userLocation.lat >= 0 ? "N" : "S";
-    //       exifObj["GPS"][piexif.GPSIFD.GPSLatitude] = toExifRational(userLocation.lat);
-    //       exifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef] = userLocation.lng >= 0 ? "E" : "W";
-    //       exifObj["GPS"][piexif.GPSIFD.GPSLongitude] = toExifRational(userLocation.lng);
-    //       dataURL = piexif.insert(piexif.dump(exifObj), dataURL);
-    //     } catch (e) {
-    //       console.error("Gagal tambah EXIF:", e);
-    //     }
-    //   }
-
-    //   capturedImageUrl = dataURL;
-    //   photoPreview.src = capturedImageUrl;
-    //   photoPreview.style.display = 'block';
-
-    //   // Tampilkan tombol
-    //   downloadBtn.style.display = 'inline-block';
-    //   retakeBtn.style.display = 'inline-block';
-    //   sendBtn.style.display = 'inline-block';
-    //   captureBtn.style.display = 'none';
-    //   switchBtn.disabled = true;
-    //   statusEl.textContent = "Foto siap diunduh!";
-    //   sendBtn.addEventListener('click', submitToGoogle)
-    // });
-
-    
     captureBtn.addEventListener('click', async () => {
       const userId = userIdInput.value.trim();
       if (!userId) {
@@ -453,13 +415,13 @@
         return;
       }
 
-      // login();
+      login();
       startAppBtn.style.display = 'none';
       switchBtn.style.display = 'inline-block';
       captureBtn.style.display = 'inline-block';
       
-      await startCamera();
-      await requestLocation();
+      // await startCamera();
+      // await requestLocation();
 
       const devices = await navigator.mediaDevices.enumerateDevices();
       const cams = devices.filter(d => d.kind === 'videoinput');
@@ -533,49 +495,49 @@
         }
     }
 
-    function login()
-    {
+    // function login()
+    // {
         
-        $.ajax({
-            type: "POST",
-            url: "http://localhost:9988/api/users/login",
-            data: {
-                "username":"admin",
-                "password":"123bsa",
-            },
-            dataType: "json",
-            success: function (response) {
+    //     $.ajax({
+    //         type: "POST",
+    //         url: "http://localhost:9988/api/users/login",
+    //         data: {
+    //             "username":"admin",
+    //             "password":"123bsa",
+    //         },
+    //         dataType: "json",
+    //         success: function (response) {
 
-                // console.log(response.accessToken);
-                // console.log(response.refreshToken);
+    //             // console.log(response.accessToken);
+    //             // console.log(response.refreshToken);
 
-                if(response.accessToken){
-                    Swal.fire(
-                        'Success!',
-                        'Data berhasil login',
-                        'success'
-                    )     
-                }else{
-                    Swal.fire(
-                        'Failed!',
-                        'Data gagal login',
-                        'warning'
-                    )
-                }
+    //             if(response.accessToken){
+    //                 Swal.fire(
+    //                     'Success!',
+    //                     'Data berhasil login',
+    //                     'success'
+    //                 )     
+    //             }else{
+    //                 Swal.fire(
+    //                     'Failed!',
+    //                     'Data gagal login',
+    //                     'warning'
+    //                 )
+    //             }
 
 
-            },
-            error: function(error) {
+    //         },
+    //         error: function(error) {
 
-                Swal.fire(
-                    'Failed!',
-                    error.responseJSON.message,
-                    'error'
-                )
-                return false;
-            }
-        });
-    }
+    //             Swal.fire(
+    //                 'Failed!',
+    //                 error.responseJSON.message,
+    //                 'error'
+    //             )
+    //             return false;
+    //         }
+    //     });
+    // }
 
     $(document).ready(function () {
       // login();
