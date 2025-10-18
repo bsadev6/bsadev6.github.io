@@ -132,7 +132,7 @@
                   <button id="switchBtn" class="btn btn-primary" style="display:none;">🔄 Ganti Kamera</button>
                   <button id="captureBtn" class="btn btn-success" style="display:none;">📷 Ambil Foto</button>
                   <button id="downloadBtn" class="btn btn-success" style="display:none;">⬇️ Unduh</button>
-                  <button id="retakeBtn" class="btn btn-default" style="display:none;">↺ Ambil Ulang</button>
+                  <button id="retakeBtn" class="btn btn-warning" style="display:none;">↺ Ambil Ulang</button>
                   <button id="sendBtn" class="btn btn-primary" style="display:none;">📤 Kirim ke Server</button>
                   <div id="statuSend" ></div>
                 </div>
@@ -442,11 +442,17 @@
 
     async function absen() {
 
-        const idInput = document.getElementById('userIdInput').trim();
-        
+        const idInput = document.getElementById('userIdInput');
+        let val ={
+          id: idInput.value,
+          lat: userLocation ? userLocation.lat : '',
+          lng: userLocation ? userLocation.lng : '',
+          date: timestampSet,
+        };
+
+        alert("Mengirim data absensi..."+val);
         sendBtn.disabled = true;
         statuSend.textContent = 'Mengirim data...';
-        alert("Mengirim data absensi...");
 
         const id = idInput.value.trim();
         if (!id) {
@@ -459,13 +465,7 @@
           statuSend.textContent = 'Mengirim data...';
           const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: {
-              id: id,
-              lat: userLocation ? userLocation.lat : '',
-              lng: userLocation ? userLocation.lng : '',
-              date: timestampSet,
-              // image: capturedImageUrl
-            }
+            body: val
           });
 
           const text = await response.text();
