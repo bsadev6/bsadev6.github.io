@@ -171,7 +171,7 @@
     const locationStatusEl = document.getElementById('locationStatus');
     const namaKaryawan = document.getElementById('namaKaryawan');
     let nama='';
-    const formData = new FormData();
+    let formData = new FormData();
 
     // === Variabel Global ===
     let stream = null;
@@ -404,6 +404,7 @@
       sendBtn.removeEventListener('click', submitToGoogle); // hindari duplikat
       sendBtn.addEventListener('click', submitToGoogle);
     });
+    
     // === HANYA UNDUH (1x klik) ===
     downloadBtn.addEventListener('click', () => {
       const a = document.createElement('a');
