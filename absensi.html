@@ -425,11 +425,12 @@
     });
 
     async function absen() {
+
+        alert("Mulai proses absen...");
         const idInput = document.getElementById('userIdInput').trim();
        
         sendBtn.disabled = true;
         statuSend.textContent = 'Mengirim data...';
-        alert("Mulai proses absen...");
 
         const id = idInput.value.trim();
         if (!id) {
@@ -501,15 +502,14 @@
 
     // === Mulai Aplikasi ===
     sendBtn.addEventListener('click', async () => {
-      alert("start!");
-      
+
       const userId = userIdInput.value.trim();
       if (!userId) {
         alert("Harap masukkan ID Karyawan!");
         return;
       }
 
-      absen();
+      await absen();
       
     });
   </script>
