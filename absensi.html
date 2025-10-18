@@ -170,6 +170,7 @@
     const statuSend = document.getElementById('statuSend');
     const locationStatusEl = document.getElementById('locationStatus');
     const namaKaryawan = document.getElementById('namaKaryawan');
+    let nama='';
 
     // === Variabel Global ===
     let stream = null;
@@ -180,7 +181,7 @@
 
     async function login() {
       const id = document.getElementById('userIdInput').value.trim();
-      let nama='';
+      
       try {
         const response = await fetch(SHEET_CSV_URL);
         // const response = await fetch(PROXIED_URL);
@@ -339,7 +340,7 @@
       const locText = userLocation ? 
         `Lokasi: ${userLocation.lat}, ${userLocation.lng}` : 
         "Lokasi: Tidak tersedia";
-      const idText = `ID: ${userId}`;
+      const idText = `ID: ${userId}-${nama}`;
 
       const tw = ctx.measureText(timestampText).width;
       const lw = ctx.measureText(locText).width;
