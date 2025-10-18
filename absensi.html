@@ -426,16 +426,16 @@
 
     async function absen() {
 
-        alert("Mulai proses absen...");
-        const idInput = document.getElementById('userIdInput').trim();
-       
-        sendBtn.disabled = true;
-        statuSend.textContent = 'Mengirim data...';
+      const idInput = document.getElementById('userIdInput').trim();
+      
+      sendBtn.disabled = true;
+      statuSend.textContent = 'Mengirim data...';
+      alert("Mengirim data absensi...");
 
         const id = idInput.value.trim();
         if (!id) {
           sendBtn.disabled = false;
-          statuSend.textContent = '';
+          statuSend.textContent = 'ID Karyawan kosong!';
           return;
         }
 
