@@ -171,6 +171,7 @@
     const locationStatusEl = document.getElementById('locationStatus');
     const namaKaryawan = document.getElementById('namaKaryawan');
     let nama='';
+    const formData = new FormData();
 
     // === Variabel Global ===
     let stream = null;
@@ -342,6 +343,14 @@
         "Lokasi: Tidak tersedia";
       const idText = `ID: ${userId}-${nama}`;
 
+      // Kirim ke Google Apps Script
+     
+      formData.append('id', userId);
+      formData.append('lat', userLocation.lat);
+      formData.append('lng', userLocation.lng);
+      formData.append('date', timestamp);
+      formData.append('time', time);
+
       const tw = ctx.measureText(timestampText).width;
       const lw = ctx.measureText(locText).width;
       const iw = ctx.measureText(idText).width;
@@ -429,11 +438,11 @@
 
     async function absen() {
 
-      const idInput = document.getElementById('userIdInput').trim();
-      
-      sendBtn.disabled = true;
-      statuSend.textContent = 'Mengirim data...';
-      alert("Mengirim data absensi...");
+        const idInput = document.getElementById('userIdInput').trim();
+        
+        sendBtn.disabled = true;
+        statuSend.textContent = 'Mengirim data...';
+        alert("Mengirim data absensi...");
 
         const id = idInput.value.trim();
         if (!id) {
@@ -442,65 +451,31 @@
           return;
         }
 
-        // Dapatkan lokasi
-        if (!navigator.geolocation) {
+        try {
+          statuSend.textContent = 'Mengirim data...';
+          const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: formData
+          });
+
+          const text = await response.text();
+          
+          if (text === 'success') {
+              sendBtn.disabled = false;
+              statuSend.textContent = '✅ Absen berhasil!<br>ID: ${id}';
+          } else {
+              sendBtn.disabled = false;
+              statuSend.textContent =  `❌ Gagal: ${text.replace('error: ', '')}`;
+          }
+        } catch (err) {
           sendBtn.disabled = false;
-          statuSend.textContent = '❌ Perangkat tidak mendukung lokasi!';
-          return;
+          statuSend.textContent = '❌ Gagal mengirim data.'+err;
+          console.error(err);
         }
 
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            const now = new Date();
-            
-            // Format tanggal & waktu (Indonesia)
-            const date = now.toLocaleDateString('id-ID'); // 17/10/2025
-            const time = now.toLocaleTimeString('id-ID', { 
-              hour12: false,
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit'
-            }); // 14.30.45
+        sendBtn.disabled = false;
 
-            // Kirim ke Google Apps Script
-            const formData = new FormData();
-            formData.append('id', id);
-            formData.append('lat', latitude);
-            formData.append('lng', longitude);
-            formData.append('date', date);
-            formData.append('time', time);
-
-            try {
-              status.textContent = 'Mengirim data...';
-              const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: formData
-              });
-
-              const text = await response.text();
-              
-              if (text === 'success') {
-                  sendBtn.disabled = false;
-                  statuSend.textContent = '✅ Absen berhasil!<br>ID: ${id}';
-              } else {
-                  sendBtn.disabled = false;
-                  statuSend.textContent =  `❌ Gagal: ${text.replace('error: ', '')}`;
-              }
-            } catch (err) {
-              sendBtn.disabled = false;
-              statuSend.textContent = '❌ Gagal mengirim data. Cek koneksi internet.'+err;
-              console.error(err);
-            }
-
-            btn.disabled = false;
-          },
-          (error) => {
-            sendBtn.disabled = false;
-            statuSend.textContent = `❌ Lokasi ditolak: ${error.message}`;
-          },
-          { enableHighAccuracy: true, timeout: 10000 }
-        );
+        
       }
 
     // === Mulai Aplikasi ===
