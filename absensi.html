@@ -101,7 +101,8 @@
                 <div class="col-sm-12">
                   <!-- Tombol mulai -->
                 
-                  <div id="locationStatus" class="info">📍 Lokasi: Menunggu izin...</div>
+                  <div id="namaKaryawan" class="info"></div>
+                  <div id="locationStatus" class="info"></div>
                   <div id="map"></div>
                   <video 
                     id="video" 
@@ -168,6 +169,7 @@
     const sendBtn =  document.getElementById('sendBtn');
     const statuSend = document.getElementById('statuSend');
     const locationStatusEl = document.getElementById('locationStatus');
+    const namaKaryawan = document.getElementById('namaKaryawan');
 
     // === Variabel Global ===
     let stream = null;
@@ -204,7 +206,7 @@
           // startAppBtn.style.display = 'none';
           switchBtn.style.display = 'inline-block';
           captureBtn.style.display = 'inline-block';
-          
+          namaKaryawan.innerHTML = `<strong>👤 Karyawan: ${nama} (ID: ${id})</strong>`;
           await requestLocation();
           // await startCamera();
 
