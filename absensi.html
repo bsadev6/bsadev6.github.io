@@ -173,6 +173,7 @@
     
     // === Variabel Global ===
     let nama='';
+    let timestampSet='';
     let formData = new FormData();
     let stream = null;
     let userLocation = null;
@@ -334,6 +335,8 @@
         hour12: false
       });
 
+      timestampSet=timestamp;
+
       ctx.font = '16px Arial';
       ctx.textBaseline = 'top';
 
@@ -456,7 +459,13 @@
           statuSend.textContent = 'Mengirim data...';
           const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: formData
+            body: {
+              id: id,
+              lat: userLocation ? userLocation.lat : '',
+              lng: userLocation ? userLocation.lng : '',
+              date: timestampSet,
+              // image: capturedImageUrl
+            }
           });
 
           const text = await response.text();
