@@ -170,10 +170,10 @@
     const statuSend = document.getElementById('statuSend');
     const locationStatusEl = document.getElementById('locationStatus');
     const namaKaryawan = document.getElementById('namaKaryawan');
+    
+    // === Variabel Global ===
     let nama='';
     let formData = new FormData();
-
-    // === Variabel Global ===
     let stream = null;
     let userLocation = null;
     let capturedImageUrl = null;
@@ -345,11 +345,11 @@
 
       // Kirim ke Google Apps Script
      
-      formData.append('id', userId);
-      formData.append('lat', userLocation.lat);
-      formData.append('lng', userLocation.lng);
-      formData.append('date', timestamp);
-      formData.append('time', time);
+      // formData.append('id', userId);
+      // formData.append('lat', userLocation.lat);
+      // formData.append('lng', userLocation.lng);
+      // formData.append('date', timestamp);
+      // formData.append('time', time);
 
       const tw = ctx.measureText(timestampText).width;
       const lw = ctx.measureText(locText).width;
