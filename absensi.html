@@ -75,71 +75,95 @@
 <body>
   <h2>📋 Absensi Karyawan</h2>
 
-  <div class="row justify-content-center">
-    <div class="col-sm-3">
-      <div class="card">
-        <div class="card-body">
-          <div id="status">Masukkan ID & klik "Login 2"</div>
-          <div class="row justify-content-center">
-            <div class="col-sm-12">
-              <input type="text" id="userIdInput" placeholder="Masukkan ID Karyawan" autocomplete="off">
-              <button id="startAppBtn" class="btn primary">▶️ Login</button>
+  <!-- Nav Tabs -->
+    <ul class="nav nav-tabs" id="absensiTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
+          <i class="fas fa-camera me-1"></i> Absensi
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="histori-tab" data-bs-toggle="tab" data-bs-target="#histori" type="button" role="tab">
+          <i class="fas fa-history me-1"></i> Histori Absen
+        </button>
+      </li>
+    </ul>
+     <!-- Tab Content -->
+    <div class="tab-content card p-4 mt-3" id="absensiTabContent">
+      
+      <!-- Tab Absensi -->
+      <div class="tab-pane fade show active" id="absensi" role="tabpanel">
+            <div class="row justify-content-center">
+            <div class="col-sm-3">
+              <div class="card">
+                <div class="card-body">
+                  <div id="status">Masukkan ID & klik "Login"</div>
+                  <div class="row justify-content-center">
+                    <div class="col-sm-12">
+                      <input type="text" id="userIdInput" placeholder="Masukkan ID Karyawan" autocomplete="off">
+                      <button id="startAppBtn" class="btn primary">▶️ Login</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+          <br>
+          <div class="row justify-content-center">
+            <div class="col-sm-3">
+                <div class="card">
+                    <div class="card-body">
+            
+                      <div class="row justify-content-center">
+                        <div class="col-sm-12">
+                          <!-- Tombol mulai -->
+                        
+                          <div id="namaKaryawan" class="info"></div>
+                          <div id="locationStatus" class="info"></div>
+                          <div id="map"></div>
+                          <video 
+                            id="video" 
+                            autoplay 
+                            muted 
+                            playsinline 
+                            webkit-playsinline
+                            style="display:none;"
+                          ></video>
+                        </div>
+            
+                      </div>
+                      
+                    </div>
+                </div>
+            </div>
+          </div>
+          <br>
+          <div class="row justify-content-center">
+            <div class="col-sm-3">
+                <div class="card">
+                    <div class="card-body">
+                        <img id="photoPreview" alt="Foto Absensi">
+
+                        <div class="controls">
+                          <button id="switchBtn" class="btn btn-primary" style="display:none;">🔄 Ganti Kamera</button>
+                          <button id="captureBtn" class="btn btn-success" style="display:none;">📷 Ambil Foto</button>
+                          <button id="downloadBtn" class="btn btn-success" style="display:none;">⬇️ Unduh</button>
+                          <button id="retakeBtn" class="btn btn-warning" style="display:none;">↺ Ambil Ulang</button>
+                          <button id="sendBtn" class="btn btn-primary" style="display:none;">📤 Kirim ke Server</button>
+                          <div id="statuSend" ></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+      </div>
+
+      <!-- Tab Histori -->
+      <div class="tab-pane fade" id="histori" role="tabpanel">
+        histori
       </div>
     </div>
-  </div>
-
-  <br>
-  <div class="row justify-content-center">
-    <div class="col-sm-3">
-        <div class="card">
-            <div class="card-body">
-    
-              <div class="row justify-content-center">
-                <div class="col-sm-12">
-                  <!-- Tombol mulai -->
-                
-                  <div id="namaKaryawan" class="info"></div>
-                  <div id="locationStatus" class="info"></div>
-                  <div id="map"></div>
-                  <video 
-                    id="video" 
-                    autoplay 
-                    muted 
-                    playsinline 
-                    webkit-playsinline
-                    style="display:none;"
-                  ></video>
-                </div>
-    
-              </div>
-              
-            </div>
-        </div>
-    </div>
-  </div>
-
-   <br>
-  <div class="row justify-content-center">
-    <div class="col-sm-3">
-        <div class="card">
-            <div class="card-body">
-                <img id="photoPreview" alt="Foto Absensi">
-
-                <div class="controls">
-                  <button id="switchBtn" class="btn btn-primary" style="display:none;">🔄 Ganti Kamera</button>
-                  <button id="captureBtn" class="btn btn-success" style="display:none;">📷 Ambil Foto</button>
-                  <button id="downloadBtn" class="btn btn-success" style="display:none;">⬇️ Unduh</button>
-                  <button id="retakeBtn" class="btn btn-warning" style="display:none;">↺ Ambil Ulang</button>
-                  <button id="sendBtn" class="btn btn-primary" style="display:none;">📤 Kirim ke Server</button>
-                  <div id="statuSend" ></div>
-                </div>
-            </div>
-        </div>
-    </div>
-  </div>
+  
   
 
 
