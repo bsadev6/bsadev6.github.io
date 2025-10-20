@@ -210,16 +210,16 @@
                 </tbody>
               </table>
           </div>
-      </div>
-       <!-- Pagination -->
-      <nav aria-label="Pagination" id="paginationNav" style="display:none;">
-        <ul class="pagination justify-content-center" id="paginationList">
-          <!-- Dinamis diisi oleh JS -->
-        </ul>
-      </nav>
-
-      <div id="noData" class="text-center d-none">
-        <p class="text-muted">Tidak ada data absen.</p>
+          <!-- Pagination -->
+         <nav aria-label="Pagination" id="paginationNav" style="display:none;">
+           <ul class="pagination justify-content-center" id="paginationList">
+             <!-- Dinamis diisi oleh JS -->
+           </ul>
+         </nav>
+   
+         <div id="noData" class="text-center d-none">
+           <p class="text-muted">Tidak ada data absen.</p>
+         </div>
       </div>
     </div>
   
@@ -237,7 +237,7 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHImJwQAsgIWljT82Z5qQzOx781M5ZEO9bNfnul0Vl2XRBPtkI4BeKAChH2NZJvAbO/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFzKUH8KUtgXFhff4Ficyhuc0y3RmX5YI5mFSbZbe6eliTRMTPYWHEryN44U8ZoYBv/exec";
     
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
@@ -624,7 +624,7 @@
         const noData = document.getElementById('noData');
         const tbody = document.getElementById('historiBody');
 
-        loading.classList.remove('d-none');
+        loading.classList.remove('d-none'); 
         table.style.display = 'none';
         paginationNav.style.display = 'none';
         noData.classList.add('d-none');
