@@ -443,12 +443,18 @@
     async function absen() {
 
         const idInput = document.getElementById('userIdInput');
-        let val ={
-          id: idInput.value,
-          lat: userLocation ? userLocation.lat : '',
-          lng: userLocation ? userLocation.lng : '',
-          date: timestampSet,
-        };
+        // let val ={
+        //   id: idInput.value,
+        //   lat: userLocation ? userLocation.lat : '',
+        //   lng: userLocation ? userLocation.lng : '',
+        //   date: timestampSet,
+        // };
+
+        const params = new URLSearchParams();
+        params.append('id', idInput.value);
+        params.append('lat', userLocation ? userLocation.lat : '');
+        params.append('lng', userLocation ? userLocation.lng : '');
+        params.append('date', timestampSet);
 
         sendBtn.disabled = true;
         statuSend.textContent = 'Mengirim data...';
@@ -479,7 +485,6 @@
         } catch (err) {
           sendBtn.disabled = false;
           statuSend.textContent = '❌ Gagal mengirim data.'+err;
-          alert('error:'+err);
           console.error(err);
         }
 
