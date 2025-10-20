@@ -164,7 +164,7 @@
           <div class="row mb-3">
               
               <div class="col-md-2">
-                <select id="filterBulan" class="form-select">
+                <select id="filterBulan" class="form-select mb-3" placeholder="Pilih Bulan">
                   <option value="">Semua Bulan</option>
                   <option value="1">Januari</option>
                   <option value="2">Februari</option>
@@ -181,7 +181,7 @@
                 </select>
               </div>
               <div class="col-md-2">
-                <select id="filterTahun" class="form-select">
+                <select id="filterTahun" class="form-select mb-3" placeholder="Pilih Tahun">
                   <option value="">Semua Tahun</option>
                   <!-- Tahun akan diisi otomatis oleh JS -->
                 </select>
@@ -263,6 +263,10 @@
     let capturedImageUrl = null;
     let facingMode = 'user'; // 'user' atau 'environment'
     let map = null;
+
+    $(document).ready(function () {
+      $('#loading').hide();
+    });
 
     async function login() {
       const id = document.getElementById('userIdInput').value.trim();
@@ -587,16 +591,26 @@
     function populateYears() {
       const yearSelect = document.getElementById('filterTahun');
       const currentYear = new Date().getFullYear();
-      for (let year = currentYear; year >= 2020; year--) {
+      
+      // Isi opsi tahun (2020–2030)
+      for (let year = currentYear + 1; year >= 2020; year--) {
         const option = document.createElement('option');
         option.value = year;
         option.textContent = year;
         yearSelect.appendChild(option);
       }
+      
+      // Set default ke tahun sekarang
+      yearSelect.value = currentYear;
     }
 
-    // Panggil saat halaman dimuat
-    document.addEventListener('DOMContentLoaded', populateYears);
+    document.addEventListener('DOMContentLoaded', function() {
+      populateYears();
+      
+      // Set bulan default ke bulan sekarang
+      const currentMonth = new Date().getMonth() + 1; // getMonth() = 0–11
+      document.getElementById('filterBulan').value = currentMonth;
+    });
 
     // Fungsi load histori dengan filter
     async function loadHistori(page = 1) {
