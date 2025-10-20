@@ -264,9 +264,6 @@
     let facingMode = 'user'; // 'user' atau 'environment'
     let map = null;
 
-    $(document).ready(function () {
-      $('#loading').hide();
-    });
 
     async function login() {
       const id = document.getElementById('userIdInput').value.trim();
@@ -522,13 +519,7 @@
     async function absen() {
 
         const idInput = document.getElementById('userIdInput');
-        // let val ={
-        //   id: idInput.value,
-        //   lat: userLocation ? userLocation.lat : '',
-        //   lng: userLocation ? userLocation.lng : '',
-        //   date: timestampSet,
-        // };
-
+       
         const params = new URLSearchParams();
         params.append('id', idInput.value);
         params.append('lat', userLocation ? userLocation.lat : '');
