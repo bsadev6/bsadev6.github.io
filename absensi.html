@@ -160,7 +160,24 @@
 
       <!-- Tab Histori -->
       <div class="tab-pane fade" id="histori" role="tabpanel">
-        histori
+          <h4 class="mb-3">📜 Histori Absen Terbaru</h4>
+          <div id="loading" class="text-center">Memuat data...</div>
+          <div class="table-responsive">
+              <table class="table table-bordered table-striped" id="historiTable" style="display:none;">
+                <thead class="table-light">
+                  <tr>
+                    <th>ID</th>
+                    <th>Tanggal</th>
+                    <th>Waktu</th>
+                    <th>Lokasi</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="historiBody">
+                  <!-- Data akan diisi via JavaScript -->
+                </tbody>
+              </table>
+          </div>
       </div>
     </div>
   
@@ -178,7 +195,7 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-I9zAx1z_XziDfgTZq5vPyHv-IH5FG_okswBajxOiLMfOxZsT40ThnO_niLudOWRj/exec"; // ← GANTI DI SINI! AKfycbw-I9zAx1z_XziDfgTZq5vPyHv-IH5FG_okswBajxOiLMfOxZsT40ThnO_niLudOWRj
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCZgHfZqi7nojaiS-evLJC7oy4pvNYquImOM1OMR0JuSrSgT6-8eFqze0Ks0dOh6Ru/exec"; // ← GANTI DI SINI! AKfycbw-I9zAx1z_XziDfgTZq5vPyHv-IH5FG_okswBajxOiLMfOxZsT40ThnO_niLudOWRj
     
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
@@ -520,6 +537,50 @@
 
       await absen();
       
+    });
+
+    // Fungsi Load Histori
+    async function loadHistori() {
+      const loading = document.getElementById('loading');
+      const table = document.getElementById('historiTable');
+      const tbody = document.getElementById('historiBody');
+
+      loading.style.display = 'block';
+      table.style.display = 'none';
+
+      try {
+        const url = `${APPS_SCRIPT_URL}?action=getHistory`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        tbody.innerHTML = '';
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center">Belum ada data absen</td></tr>';
+        } else {
+          data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${row.id || '-'}</td>
+              <td>${row.date || '-'}</td>
+              <td>${row.time || '-'}</td>
+              <td>${row.lat && row.lng ? `${parseFloat(row.lat).toFixed(5)}, ${parseFloat(row.lng).toFixed(5)}` : '-'}</td>
+              <td>${row.status || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+
+        loading.style.display = 'none';
+        table.style.display = 'table';
+      } catch (err) {
+        loading.textContent = 'Gagal memuat histori.';
+        console.error(err);
+      }
+    }
+
+    // Event: saat tab histori aktif, load data
+    document.getElementById('histori-tab').addEventListener('shown.bs.tab', function () {
+      loadHistori();
     });
   </script>
 </body>
