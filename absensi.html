@@ -346,14 +346,6 @@
         "Lokasi: Tidak tersedia";
       const idText = `ID: ${userId}-${nama}`;
 
-      // Kirim ke Google Apps Script
-     
-      // formData.append('id', userId);
-      // formData.append('lat', userLocation.lat);
-      // formData.append('lng', userLocation.lng);
-      // formData.append('date', timestamp);
-      // formData.append('time', time);
-
       const tw = ctx.measureText(timestampText).width;
       const lw = ctx.measureText(locText).width;
       const iw = ctx.measureText(idText).width;
@@ -477,7 +469,7 @@
           
           if (text === 'success') {
               sendBtn.disabled = false;
-              statuSend.textContent = '✅ Absen berhasil!<br>ID: ${id}';
+              statuSend.textContent = `✅ Absen berhasil-ID: ${id}`;
           } else {
               sendBtn.disabled = false;
               statuSend.textContent =  `❌ Gagal: ${text.replace('error: ', '')}`;
