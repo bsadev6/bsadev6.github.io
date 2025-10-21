@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan V2</h2>
+  <h2>📋 Absensi Karyawan V3</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -235,7 +235,7 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywerhCRrIziTCONCnin6kIygzgFgV99r0xtKwiIPdxt-hdc46FgiRNZ60nhwGPhDmh/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxqnIv48FT8b4XOmsEuNNVrIuU9-JVucNUn4qGFt8mEIXUt-dm6u2P9jdcrqXL9X5In/exec";
     
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
@@ -669,9 +669,12 @@
               sendBtn.disabled = false;
               statuSend.textContent = `✅ Absen berhasil-ID: ${id}`;
 
-              // === 2. UPLOAD FOTO KE GOOGLE DRIVE ===
-              statuSend.textContent = 'Mengupload foto...';
-              const photoUrl = await uploadPhotoToDrive(idInput.value, capturedImageUrl);
+              setTimeout(() => {
+                 // === 2. UPLOAD FOTO KE GOOGLE DRIVE ===
+                statuSend.textContent = 'Mengupload foto...';
+                const photoUrl = uploadPhotoToDrive(idInput.value, capturedImageUrl);
+              }, 1000);
+             
           } else {
               sendBtn.disabled = false;
               statuSend.textContent =  `❌ Gagal: ${text.replace('error: ', '')}`;
