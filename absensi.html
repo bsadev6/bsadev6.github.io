@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan</h2>
+  <h2>📋 Absensi Karyawan V2</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -235,7 +235,7 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyfR7GCjEREaw8R2SoaPAmPlWnFlBWZTfCMkRU7NURvX85MGTeoPRiWpx4rgTM6xHkb/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbywerhCRrIziTCONCnin6kIygzgFgV99r0xtKwiIPdxt-hdc46FgiRNZ60nhwGPhDmh/exec";
     
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
@@ -668,6 +668,10 @@
           if (text === 'success') {
               sendBtn.disabled = false;
               statuSend.textContent = `✅ Absen berhasil-ID: ${id}`;
+
+              // === 2. UPLOAD FOTO KE GOOGLE DRIVE ===
+              statuSend.textContent = 'Mengupload foto...';
+              const photoUrl = await uploadPhotoToDrive(idInput.value, capturedImageUrl);
           } else {
               sendBtn.disabled = false;
               statuSend.textContent =  `❌ Gagal: ${text.replace('error: ', '')}`;
@@ -731,7 +735,7 @@
           alert("Harap masukkan ID Karyawan!");
           return;
         }
-        
+
         const bulan = document.getElementById('filterBulan').value;
         const tahun = document.getElementById('filterTahun').value;
 
@@ -849,6 +853,47 @@
     });
 
    
+    /**
+     * Upload foto absen ke Google Drive
+     * @param {string} userId - ID karyawan
+     * @param {string} dataUrl - URL data gambar (data:image/jpeg;base64,...)
+     * @returns {Promise<string>} - URL foto di Google Drive
+     */
+    async function uploadPhotoToDrive(userId, dataUrl) {
+      // Validasi
+      if (!userId) throw new Error('ID karyawan tidak boleh kosong');
+      if (!dataUrl) throw new Error('Foto tidak tersedia');
+
+      // Format nama file: ID_Tanggal_Jam.jpg
+      const now = new Date();
+      const datePart = now.toLocaleDateString('id-ID').replace(/\//g, '-'); // 20-10-2025
+      const timePart = now.toLocaleTimeString('id-ID', { hour12: false }).replace(/[:.]/g, '-'); // 14-30-45
+      const fileName = `${userId}_${datePart}_${timePart}.jpg`;
+
+      // Konversi dataURL ke Blob
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const photoFile = new File([blob], fileName, { type: 'image/jpeg' });
+
+      // Siapkan FormData
+      const formData = new URLSearchParams();
+      formData.append('id', userId);
+      formData.append('photo', photoFile);
+      formData.append('action', 'uploadPhoto'); // penting!
+
+      // Kirim ke Google Apps Script
+      const response = await fetch(APPS_SCRIPT_URL.trim(), {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+      if (result.status !== 'success') {
+        throw new Error(result.message || 'Gagal upload foto ke Google Drive');
+      }
+
+      return result.url; // URL publik foto
+    }
   </script>
 </body>
 </html>
