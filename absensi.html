@@ -195,14 +195,12 @@
           <br>
           <div id="loading" class="text-center">Memuat data...</div>
           <div class="table-responsive">
-              <table class="table table-bordered table-striped" id="historiTable" style="display:none;">
+              <table class="table table-borderless table-striped" id="historiTable" style="display:none;">
                 <thead class="table-light">
                   <tr>
-                    <th>ID</th>
                     <th>Tanggal</th>
-                    <th>Waktu</th>
-                    <th>Lokasi</th>
-                    <th>Status</th>
+                    <th>Clock In</th>
+                    <th>Clock Out</th>
                   </tr>
                 </thead>
                 <tbody id="historiBody">
@@ -237,7 +235,7 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFzKUH8KUtgXFhff4Ficyhuc0y3RmX5YI5mFSbZbe6eliTRMTPYWHEryN44U8ZoYBv/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylteg4uT9WOkzaOyw9_S-hewb9RkiVNhfAtQeodPy9IrsX4wx_DountCo2bwEFtv_Z/exec";
     
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
@@ -264,7 +262,201 @@
     let facingMode = 'user'; // 'user' atau 'environment'
     let map = null;
 
+    // Format tanggal dari "20/10/2025, 10.12.45" jadi "20 Okt 2025 10:12:45"
+    function formatDateTime(dateStr) {
+      if (!dateStr) return '';
+      const [datePart, timePart] = dateStr.split(', ');
+      const [day, month, year] = datePart.split('/');
+      const [hour, min, sec] = timePart.split('.');
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      
+      // ${hour}:${min}:${sec} ${year}
+      return `${day} ${months[parseInt(month)-1]}`;
+    }
 
+    function extractTimeFromDateTime(dateTimeStr) {
+      // Contoh input: "20/10/2025, 10.12.45"
+      if (!dateTimeStr || !dateTimeStr.includes(', ')) {
+        return null;
+      }
+
+      // Ambil bagian waktu setelah koma
+      const timePart = dateTimeStr.split(', ')[1]; // → "10.12.45"
+
+      if (!timePart || !timePart.includes('.')) {
+        return null;
+      }
+
+      // Pisahkan jam, menit, detik
+      const [hours, minutes, seconds] = timePart.split('.');
+
+      // Validasi
+      if (!hours || !minutes || !seconds) {
+        return null;
+      }
+
+      return {
+        hours: parseInt(hours, 10),
+        minutes: parseInt(minutes, 10),
+        seconds: parseInt(seconds, 10),
+        // Format sebagai string HH:mm:ss
+        formatted: `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`
+      };
+    }
+
+    function transformAbsensiData(rawData) {
+      // rawData = array of objects from Google Sheet
+      const grouped = {};
+
+      rawData.forEach(row => {
+        const id = row.id;
+        const dateString = row.date; // "20/10/2025, 10.12.45"
+        const status = row.status;
+
+        if (!dateString || !id) return;
+
+        // Ekstrak tanggal dan waktu
+        const [datePart, timePart] = dateString.split(', ');
+        const [day, month, year] = datePart.split('/');
+        const [hours, minutes, seconds] = timePart.split('.');
+
+        // Format tanggal untuk tampilan: "20 Okt"
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const displayDate = `${day} ${months[parseInt(month)-1]}`;
+
+        // Key unik: ID + Tanggal
+        const key = `${id}-${displayDate}`;
+
+        if (!grouped[key]) {
+          grouped[key] = {
+            id: id,
+            date: displayDate,
+            clockIn: null,
+            clockOut: null,
+            rawTimes: [] // simpan semua waktu untuk debugging
+          };
+        }
+
+        const timeInSeconds = parseInt(hours)*3600 + parseInt(minutes)*60 + parseInt(seconds);
+        const timeStr = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
+
+        grouped[key].rawTimes.push({
+          timeStr,
+          timeInSeconds
+        });
+
+        // Update Clock In (min)
+        if (!grouped[key].clockIn || timeInSeconds < grouped[key].clockIn.timeInSeconds) {
+          grouped[key].clockIn = { timeStr, timeInSeconds };
+        }
+
+        // Update Clock Out (max)
+        if (!grouped[key].clockOut || timeInSeconds > grouped[key].clockOut.timeInSeconds) {
+          grouped[key].clockOut = { timeStr, timeInSeconds };
+        }
+      });
+
+      // Konversi ke array
+      return Object.values(grouped).map(item => ({
+        id: item.id,
+        date: item.date,
+        clockIn: item.clockIn ? item.clockIn.timeStr : '-',
+        clockOut: item.clockOut ? item.clockOut.timeStr : '-'
+      }));
+    }
+
+
+    function transformAbsensiDataWithFilter(rawData, filterId = '', filterBulan = null, filterTahun = null) {
+      const grouped = {};
+
+      console.log('Filter ID:', filterId);
+      console.log('Filter Bulan:', filterBulan);
+      console.log('Filter Tahun:', filterTahun);
+
+      // Daftar nama bulan untuk tampilan
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+      rawData.forEach(row => {
+            const id = row.id;
+            const dateString = row.date; // Format: "20/10/2025, 10.12.45"
+    
+            if (!dateString || !id) return;
+
+            // Ekstrak bagian tanggal dan waktu
+            const [datePart, timePart] = dateString.split(', ');
+            if (!datePart || !timePart) return;
+
+            const [day, monthStr, yearStr] = datePart.split('/');
+            const [hours, minutes, seconds] = timePart.split('.');
+
+            // Validasi angka
+            const dayNum = parseInt(day, 10);
+            const monthNum = parseInt(monthStr, 10);
+            const yearNum = parseInt(yearStr, 10);
+
+            if (isNaN(dayNum) || isNaN(monthNum) || isNaN(yearNum)) return;
+
+            // 🔍 Filter berdasarkan ID
+            if (filterId && id !== filterId) return;
+
+            // 🔍 Filter berdasarkan bulan
+            if (filterBulan !== null && monthNum !== filterBulan) return;
+
+            // 🔍 Filter berdasarkan tahun
+            if (filterTahun !== null && yearNum !== filterTahun) return;
+
+            // Format tanggal untuk tampilan: "20 Okt"
+            const displayDate = `${day} ${months[monthNum - 1]}`;
+
+            // Key unik: ID + Tanggal
+            const key = `${id}-${displayDate}`;
+
+            if (!grouped[key]) {
+              grouped[key] = {
+                id: id,
+                date: displayDate,
+                clockIn: null,
+                clockOut: null,
+                rawTimes: []
+              };
+            }
+
+            const timeInSeconds = (parseInt(hours) || 0) * 3600 + 
+                                  (parseInt(minutes) || 0) * 60 + 
+                                  (parseInt(seconds) || 0);
+    
+            const timeStr = `${(hours || '00').padStart(2, '0')}:${(minutes || '00').padStart(2, '0')}:${(seconds || '00').padStart(2, '0')}`;
+
+            grouped[key].rawTimes.push({
+              timeStr,
+              timeInSeconds
+            });
+
+            // Update Clock In (waktu paling awal)
+            if (!grouped[key].clockIn || timeInSeconds < grouped[key].clockIn.timeInSeconds) {
+              grouped[key].clockIn = { timeStr, timeInSeconds };
+            }
+
+            // Update Clock Out (waktu paling akhir)
+            if (!grouped[key].clockOut || timeInSeconds > grouped[key].clockOut.timeInSeconds) {
+              grouped[key].clockOut = { timeStr, timeInSeconds };
+            }
+          });
+
+      // Konversi ke array dan urutkan berdasarkan tanggal (opsional)
+      return Object.values(grouped)
+        .map(item => ({
+          id: item.id,
+          date: item.date,
+          clockIn: item.clockIn ? item.clockIn.timeStr : '-',
+          clockOut: item.clockOut ? item.clockOut.timeStr : '-'
+        }))
+        .sort((a, b) => {
+          // Urutkan berdasarkan tanggal (jika butuh)
+          // Kamu bisa tambahkan logika parsing tanggal lengkap di sini
+          return 0;
+        });
+    } 
     async function login() {
       const id = document.getElementById('userIdInput').value.trim();
       
@@ -622,7 +814,7 @@
 
         try {
           const params = new URLSearchParams({
-            action: 'getHistory',
+            action: 'getAllHistory',
             id: id,
             bulan: bulan,
             tahun: tahun, // <-- tambahkan tahun
@@ -642,15 +834,16 @@
           if (data.length === 0) {
             noData.classList.remove('d-none');
           } else {
-            data.forEach(row => {
+
+            let setData= transformAbsensiData(data)
+            // let setData= transformAbsensiDataWithFilter(data,`${id}`,bulan,tahun)
+
+            setData.forEach(row => {
               const tr = document.createElement('tr');
-              // Format tanggal agar lebih rapi (opsional)
-              const formattedDate = formatDateTime(row.date);
               tr.innerHTML = `
-                <td>${row.id || '-'}</td>
-                <td>${formattedDate}</td>
-                <td>${row.lat && row.lng ? `${parseFloat(row.lat).toFixed(5)}, ${parseFloat(row.lng).toFixed(5)}` : '-'}</td>
-                <td><span class="badge ${row.status?.includes('VALID') ? 'bg-success' : 'bg-danger'}">${row.status || '-'}</span></td>
+                <td>${row.date}</td>
+                <td>${row.clockIn || '-'}</td>
+                <td>${row.clockOut || '-'}</td>
               `;
               tbody.appendChild(tr);
             });
@@ -715,6 +908,8 @@
     document.getElementById('userIdInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') loadHistori(1);
     });
+
+   
   </script>
 </body>
 </html>
