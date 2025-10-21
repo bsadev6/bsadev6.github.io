@@ -879,7 +879,7 @@
       const photoFile = new File([blob], fileName, { type: 'image/jpeg' });
 
       // Siapkan FormData
-      const formData = new URLSearchParams();
+      const formData = new FormData();
       formData.append('id', userId);
       formData.append('photo', photoFile);
       formData.append('action', 'uploadPhoto'); // penting!
