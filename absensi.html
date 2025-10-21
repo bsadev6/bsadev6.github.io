@@ -235,7 +235,7 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxqnIv48FT8b4XOmsEuNNVrIuU9-JVucNUn4qGFt8mEIXUt-dm6u2P9jdcrqXL9X5In/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxo6z7fnW-bqZxgRHt1bVBvf1envqUNZm1hqKJc6w3AI3PQ8gS1PMG_sqA7asTNmCGC/exec";
     
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
@@ -863,40 +863,40 @@
      * @returns {Promise<string>} - URL foto di Google Drive
      */
     async function uploadPhotoToDrive(userId, dataUrl) {
-      // Validasi
-      if (!userId) throw new Error('ID karyawan tidak boleh kosong');
-      if (!dataUrl) throw new Error('Foto tidak tersedia');
+        if (!userId) throw new Error('ID karyawan tidak boleh kosong');
+        if (!dataUrl) throw new Error('Foto tidak tersedia');
 
-      // Format nama file: ID_Tanggal_Jam.jpg
-      const now = new Date();
-      const datePart = now.toLocaleDateString('id-ID').replace(/\//g, '-'); // 20-10-2025
-      const timePart = now.toLocaleTimeString('id-ID', { hour12: false }).replace(/[:.]/g, '-'); // 14-30-45
-      const fileName = `${userId}_${datePart}_${timePart}.jpg`;
+        // Ambil base64 dari dataURL (hapus prefix "data:image/jpeg;base64,")
+        const base64Data = dataUrl.split(',')[1];
 
-      // Konversi dataURL ke Blob
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
-      const photoFile = new File([blob], fileName, { type: 'image/jpeg' });
+        // Format nama file
+        const now = new Date();
+        const datePart = now.toLocaleDateString('id-ID').replace(/\//g, '-');
+        const timePart = now.toLocaleTimeString('id-ID', { hour12: false }).replace(/[:.]/g, '-');
+        const fileName = `${userId}_${datePart}_${timePart}.jpg`;
 
-      // Siapkan FormData
-      const formData = new FormData();
-      formData.append('id', userId);
-      formData.append('photo', photoFile);
-      formData.append('action', 'uploadPhoto'); // penting!
+        // Kirim sebagai data teks (bukan FormData!)
+        const params = new URLSearchParams();
+        params.append('id', userId);
+        params.append('fileName', fileName);
+        params.append('fileData', base64Data); // ← base64 string
+        params.append('action', 'uploadPhoto');
 
-      // Kirim ke Google Apps Script
-      const response = await fetch(APPS_SCRIPT_URL.trim(), {
-        method: 'POST',
-        body: formData
-      });
+        const response = await fetch(APPS_SCRIPT_URL.trim(), {
+          method: 'POST',
+          body: params, // ✅ URLSearchParams, bukan FormData
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        });
 
-      const result = await response.json();
-      if (result.status !== 'success') {
-        throw new Error(result.message || 'Gagal upload foto ke Google Drive');
+        const result = await response.json();
+        if (result.status !== 'success') {
+          throw new Error(result.message || 'Gagal upload foto');
+        }
+
+        return result.url;
       }
-
-      return result.url; // URL publik foto
-    }
   </script>
 </body>
 </html>
