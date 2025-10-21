@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan V2</h2>
+  <h2>📋 Absensi Karyawan BSA</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -666,7 +666,6 @@
           const text = await response.text();
           
           if (text === 'success') {
-              sendBtn.disabled = false;
               statuSend.textContent = `✅ Absen berhasil-ID: ${id}`;
 
               setTimeout(() => {
@@ -892,9 +891,13 @@
 
         const result = await response.json();
         if (result.status !== 'success') {
-          throw new Error(result.message || 'Gagal upload foto');
+          // throw new Error(result.message || 'Gagal upload foto');
+          sendBtn.disabled = false;
+          statuSend.textContent = `Gagal upload foto: ${result.message}`;
         }
 
+        sendBtn.disabled = false;
+        statuSend.textContent = `✅ Upload foto Berhasil: ${id}`;
         return result.url;
       }
   </script>
