@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan BSA 1</h2>
+  <h2>📋 Absensi Karyawan BSA</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -235,7 +235,7 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxo6z7fnW-bqZxgRHt1bVBvf1envqUNZm1hqKJc6w3AI3PQ8gS1PMG_sqA7asTNmCGC/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNr5tJ3a_fBY8HCm7ZGvNf6Kr0aUklMisyxaSBm3XpNe9G9Q_tCWCRvyUJS6AUwoCA/exec";
     
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
@@ -261,6 +261,8 @@
     let capturedImageUrl = null;
     let facingMode = 'user'; // 'user' atau 'environment'
     let map = null;
+    let currentHistoriPage = 1;
+    let totalHistoriPages = 1;
 
     // Format tanggal dari "20/10/2025, 10.12.45" jadi "20 Okt 2025 10:12:45"
     function formatDateTime(dateStr) {
@@ -304,11 +306,27 @@
       };
     }
 
-    
+    // Isi dropdown tahun otomatis (2020–2030)
+    function populateYears() {
+      const yearSelect = document.getElementById('filterTahun');
+      const currentYear = new Date().getFullYear();
+      
+      // Isi opsi tahun (2020–2030)
+      for (let year = currentYear + 1; year >= 2020; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option);
+      }
+      
+      // Set default ke tahun sekarang
+      yearSelect.value = currentYear;
+    }
+
     /**
      * Transformasi data absensi dengan filter yang tahan terhadap string/number
      */
-    function transformAbsensiDataWithFilter(rawData, filterId = '', filterBulan = null, filterTahun = null) {
+    function transformAbsensiDataWithFilter2(rawData, filterId = '', filterBulan = null, filterTahun = null) {
       const grouped = {};
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
@@ -384,7 +402,86 @@
       }));
     }    
     
-    
+    /**
+     * Transformasi data absensi dengan filter ID, bulan, tahun
+     * dan logika waktu: 
+     *   - < 12.00 → Clock In
+     *   - >= 12.00 → Clock Out
+     */
+    function transformAbsensiDataWithFilter(rawData, filterId = '', filterBulan = null, filterTahun = null) {
+      const grouped = {};
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+      // Normalisasi filter
+      const normalizedFilterBulan = filterBulan !== null ? String(filterBulan).padStart(2, '0') : null;
+      const normalizedFilterTahun = filterTahun !== null ? String(filterTahun) : null;
+
+      rawData.forEach(row => {
+        const id = String(row.id || '').trim();
+        const dateString = String(row.date || '').trim();
+
+        if (!dateString || !id) return;
+        if (!dateString.includes(', ')) return;
+
+        const [datePart] = dateString.split(', ');
+        const dateParts = datePart.split('/');
+        if (dateParts.length !== 3) return;
+
+        const [dayStr, monthStr, yearStr] = dateParts.map(s => s.trim());
+        if (!dayStr || !monthStr || !yearStr) return;
+
+        // 🔍 FILTER
+        if (filterId && id !== filterId) return;
+        if (normalizedFilterBulan && monthStr.padStart(2, '0') !== normalizedFilterBulan) return;
+        if (normalizedFilterTahun && yearStr !== normalizedFilterTahun) return;
+
+        // Format tanggal tampilan
+        const displayDate = `${dayStr} ${months[parseInt(monthStr, 10) - 1]}`;
+        const key = `${id}-${displayDate}`;
+
+        if (!grouped[key]) {
+          grouped[key] = {
+            id: id,
+            date: displayDate,
+            clockIn: null,   // Hanya ambil waktu < 12.00
+            clockOut: null,  // Hanya ambil waktu >= 12.00
+            rawTimes: []
+          };
+        }
+
+        // Parse waktu
+        const timePart = dateString.split(', ')[1];
+        if (!timePart) return;
+
+        const timeParts = timePart.split('.');
+        if (timeParts.length !== 3) return;
+
+        const [h, m, s] = timeParts.map(t => t.trim().padStart(2, '0'));
+        const timeStr = `${h}:${m}:${s}`;
+        const timeInSeconds = parseInt(h, 10) * 3600 + parseInt(m, 10) * 60 + parseInt(s, 10);
+
+        // ✅ LOGIKA WAKTU: Clock In / Clock Out
+        if (timeInSeconds < 12 * 3600) {
+          // Clock In: ambil waktu paling awal di pagi hari
+          if (!grouped[key].clockIn || timeInSeconds < grouped[key].clockIn.timeInSeconds) {
+            grouped[key].clockIn = { timeStr, timeInSeconds };
+          }
+        } else {
+          // Clock Out: ambil waktu paling akhir di siang/malam
+          if (!grouped[key].clockOut || timeInSeconds > grouped[key].clockOut.timeInSeconds) {
+            grouped[key].clockOut = { timeStr, timeInSeconds };
+          }
+        }
+      });
+
+      return Object.values(grouped).map(item => ({
+        id: item.id,
+        date: item.date, 
+        clockIn: item.clockIn ? item.clockIn.timeStr : '-',   // Tetap '-' jika tidak ada
+        clockOut: item.clockOut ? item.clockOut.timeStr : '-' // Tetap '-' jika tidak ada
+      }));
+    }
+
     async function login() {
       const id = document.getElementById('userIdInput').value.trim();
       
@@ -680,7 +777,7 @@
           }
         } catch (err) {
           sendBtn.disabled = false;
-          statuSend.textContent = '❌ Gagal mengirim data.'+err;
+          statuSend.textContent = '❌ Gagal mengirim data:'+err;
           console.error(err);
         }
 
@@ -701,25 +798,6 @@
       await absen();
       
     });
-
-    let currentHistoriPage = 1;
-    let totalHistoriPages = 1;
-    // Isi dropdown tahun otomatis (2020–2030)
-    function populateYears() {
-      const yearSelect = document.getElementById('filterTahun');
-      const currentYear = new Date().getFullYear();
-      
-      // Isi opsi tahun (2020–2030)
-      for (let year = currentYear + 1; year >= 2020; year--) {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        yearSelect.appendChild(option);
-      }
-      
-      // Set default ke tahun sekarang
-      yearSelect.value = currentYear;
-    }
 
     document.addEventListener('DOMContentLoaded', function() {
       populateYears();
@@ -897,7 +975,7 @@
         }
 
         sendBtn.disabled = false;
-        statuSend.textContent = `✅ Upload foto Berhasil:`;
+        statuSend.textContent = `✅ Upload foto Berhasil`;
         return result.url;
       }
   </script>
