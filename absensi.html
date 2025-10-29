@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan BSA 2</h2>
+  <h2>📋 Absensi Karyawan BSA</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -592,10 +592,12 @@
         });
         video.srcObject = stream;
         video.style.display = 'block';
+        loadingMapnCamera.style.display='none';
         switchBtn.style.display = 'inline-block';
         captureBtn.style.display = 'inline-block';
         captureBtn.disabled = false;
         statusEl.textContent = `Kamera aktif (${facingMode === 'user' ? 'Depan' : 'Belakang'})`;
+
       } catch (err) {
         statusEl.textContent = "Gagal akses kamera";
         console.error(err);
