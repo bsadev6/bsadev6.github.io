@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan BSA</h2>
+  <h2>📋 Absensi Karyawan BSA 2</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -120,6 +120,7 @@
                         
                           <div id="namaKaryawan" class="info"></div>
                           <div id="locationStatus" class="info"></div>
+                          <div id="loadingMapnCamera" class="text-center" style="display:none;">Memuat Lokasi dan Camera...</div>
                           <div id="map"></div>
                           <video 
                             id="video" 
@@ -235,8 +236,7 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNr5tJ3a_fBY8HCm7ZGvNf6Kr0aUklMisyxaSBm3XpNe9G9Q_tCWCRvyUJS6AUwoCA/exec";
-    
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBoiwg47LPLHVPKMmuLAqpYBAed5ToRWnffanSm9GIp_c0rVsVds8sC3Vhc0Amx68/exec";
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
     const mapEl = document.getElementById('map');
@@ -250,6 +250,7 @@
     const sendBtn =  document.getElementById('sendBtn');
     const statuSend = document.getElementById('statuSend');
     const locationStatusEl = document.getElementById('locationStatus');
+    const loadingMapnCamera = document.getElementById('loadingMapnCamera');
     const namaKaryawan = document.getElementById('namaKaryawan');
     
     // === Variabel Global ===
@@ -508,8 +509,8 @@
           alert(`✅ Login berhasil,Selamat Datang: ${id}-${nama}`);
           // Redirect atau lanjut ke halaman absen
           // startAppBtn.style.display = 'none';
-          switchBtn.style.display = 'inline-block';
-          captureBtn.style.display = 'inline-block';
+          loadingMapnCamera.style.display='block';
+          
           namaKaryawan.innerHTML = `<strong>👤 Karyawan: ${nama} (ID: ${id})</strong>`;
           await requestLocation();
           // await startCamera();
@@ -549,7 +550,7 @@
         attribution: '&copy; OpenStreetMap'
       }).addTo(map);
       L.marker([lat, lng]).addTo(map).bindPopup('Lokasi Absensi').openPopup();
-
+      
       startCamera();
     }
 
@@ -570,6 +571,7 @@
         userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         locationStatusEl.style.display='block';
         locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat}, ${userLocation.lng}`;
+        
         initMap(userLocation.lat, userLocation.lng);
         return userLocation;
       } catch (err) {
@@ -590,6 +592,8 @@
         });
         video.srcObject = stream;
         video.style.display = 'block';
+        switchBtn.style.display = 'inline-block';
+        captureBtn.style.display = 'inline-block';
         captureBtn.disabled = false;
         statusEl.textContent = `Kamera aktif (${facingMode === 'user' ? 'Depan' : 'Belakang'})`;
       } catch (err) {
