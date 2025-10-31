@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan BSA 1</h2>
+  <h2>📋 Absensi Karyawan BSA 2</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -990,7 +990,7 @@
     // Fungsi load histori dengan filter
     async function validateLocation() {
 
-        alert('Lokasi divalidasi:');
+        alert('validating location...');
 
         const id = document.getElementById('userIdInput').value.trim();
         if (!id) {
@@ -999,6 +999,7 @@
         }
 
         try {
+
           const params = new URLSearchParams({
             action: 'validateLocation',
             id: id,
@@ -1016,7 +1017,7 @@
 
         } catch (err) {
           console.error('Error:', err);
-         
+          alert('Lokasi divalidasi:'+JSON.stringify(err));
         } finally {
           console.log('Selesai validasi lokasi');
         }
