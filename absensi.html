@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan BSA</h2>
+  <h2>📋 Absensi Karyawan BSA 1</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -552,6 +552,8 @@
       L.marker([lat, lng]).addTo(map).bindPopup('Lokasi Absensi').openPopup();
       
       startCamera();
+      validateLocation();
+      
     }
 
     // === Lokasi ===
