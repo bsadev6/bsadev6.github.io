@@ -236,7 +236,7 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxeHiXyR3EgfNvt6kjrVi22X6BV0Dduz_z9QTcN7iDYPanrmzxql3QkWFoNz-mJYAqo/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbynNOkAh7uwYeqYFp2VfaF98hTmlYH-9QWLy4ZhnvDry3HafcteAq6Qzp_7vawLlmo/exec";
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
     const mapEl = document.getElementById('map');
@@ -991,8 +991,6 @@
     // Fungsi load histori dengan filter
     async function validateLocation() {
 
-        alert('validating location...');
-
         const id = document.getElementById('userIdInput').value.trim();
         if (!id) {
           alert("Harap masukkan ID Karyawan!");
@@ -1013,11 +1011,7 @@
           const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
           const response = await fetch(url);
           const result = await response.json();
-
-          console.log('Lokasi validasi:', result);
-          alert('Lokasi divalidasi:'+JSON.stringify(result));
           
-
         } catch (err) {
           console.error('Error:', err);
           alert('Error validasi lokasi:'+JSON.stringify(err.message));
