@@ -553,7 +553,7 @@
       
       startCamera();
       validateLocation();
-      
+
     }
 
     // === Lokasi ===
@@ -750,10 +750,6 @@
         params.append('lat', userLocation ? userLocation.lat : '');
         params.append('lng', userLocation ? userLocation.lng : '');
         params.append('date', timestampSet);
-
-        validateLocation();
-
-        return;
 
         sendBtn.disabled = true;
         statuSend.textContent = 'Mengirim data...';
@@ -993,6 +989,8 @@
 
     // Fungsi load histori dengan filter
     async function validateLocation() {
+
+        alert('Lokasi divalidasi:');
 
         const id = document.getElementById('userIdInput').value.trim();
         if (!id) {
