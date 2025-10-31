@@ -236,7 +236,7 @@
   <script>
     // === Elemen DOM ===
     const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSXtPzMDcaFd4wkv58hcPuRJ575PYfn3YP8lgdJW0-plTUkwFzYi9ETU9tAo_izIztDHT376d2oIxRE/pub?output=csv';
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBoiwg47LPLHVPKMmuLAqpYBAed5ToRWnffanSm9GIp_c0rVsVds8sC3Vhc0Amx68/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxeHiXyR3EgfNvt6kjrVi22X6BV0Dduz_z9QTcN7iDYPanrmzxql3QkWFoNz-mJYAqo/exec";
     const video = document.getElementById('video');
     const photoPreview = document.getElementById('photoPreview');
     const mapEl = document.getElementById('map');
@@ -749,6 +749,10 @@
         params.append('lng', userLocation ? userLocation.lng : '');
         params.append('date', timestampSet);
 
+        validateLocation();
+
+        return;
+
         sendBtn.disabled = true;
         statuSend.textContent = 'Mengirim data...';
 
@@ -983,7 +987,41 @@
         sendBtn.disabled = false;
         statuSend.textContent = `✅ Upload foto Berhasil`;
         return result.url;
-      }
+    }
+
+    // Fungsi load histori dengan filter
+    async function validateLocation() {
+
+        const id = document.getElementById('userIdInput').value.trim();
+        if (!id) {
+          alert("Harap masukkan ID Karyawan!");
+          return;
+        }
+
+        try {
+          const params = new URLSearchParams({
+            action: 'validateLocation',
+            id: id,
+            lat: userLocation.lat,
+            lat: userLocation.lng, // <-- tambahkan tahun
+          });
+
+          const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
+          const response = await fetch(url);
+          const result = await response.json();
+
+          console.log('Lokasi validasi:', result);
+          alert('Lokasi divalidasi:'+JSON.stringify(result));
+          
+
+        } catch (err) {
+          console.error('Error:', err);
+         
+        } finally {
+          console.log('Selesai validasi lokasi');
+        }
+    }
+
   </script>
 </body>
 </html>
