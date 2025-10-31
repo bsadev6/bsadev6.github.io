@@ -1004,8 +1004,10 @@
           const params = new URLSearchParams({
             action: 'validateLocation',
             id: id,
-            lat: userLocation.lat ? userLocation.lat : null,
-            lat: userLocation.lng ? userLocation.lng : null,
+            lat: '-2.966010326767',
+            lng: '104.70981842147006',
+            // lat: userLocation.lat ? userLocation.lat : null,
+            // lng: userLocation.lng ? userLocation.lng : null,
           });
 
           const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
