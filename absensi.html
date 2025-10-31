@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan BSA 1</h2>
+  <h2>📋 Absensi Karyawan BSA 2</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -513,6 +513,7 @@
           
           namaKaryawan.innerHTML = `<strong>👤 Karyawan: ${nama} (ID: ${id})</strong>`;
           await requestLocation();
+          await validateLocation()
           // await startCamera();
 
           const devices = await navigator.mediaDevices.enumerateDevices();
@@ -1004,7 +1005,7 @@
             action: 'validateLocation',
             id: id,
             lat: userLocation.lat,
-            lat: userLocation.lng, // <-- tambahkan tahun
+            lat: userLocation.lng,
           });
 
           const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
