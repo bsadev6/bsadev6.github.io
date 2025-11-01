@@ -513,7 +513,6 @@
           
           namaKaryawan.innerHTML = `<strong>👤 Karyawan: ${nama} (ID: ${id})</strong>`;
           await requestLocation();
-          await validateLocation()
           // await startCamera();
 
           const devices = await navigator.mediaDevices.enumerateDevices();
@@ -572,10 +571,13 @@
           });
         });
         userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        locationStatusEl.style.display='block';
-        locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat}, ${userLocation.lng}`;
         
-        initMap(userLocation.lat, userLocation.lng);
+        await validateLocation();
+        
+        // locationStatusEl.style.display='block';
+        // locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat}, ${userLocation.lng}`;
+        
+        // initMap(userLocation.lat, userLocation.lng);
         return userLocation;
       } catch (err) {
         userLocation = null;
@@ -1011,7 +1013,18 @@
           const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
           const response = await fetch(url);
           const result = await response.json();
-          
+
+          if (result.valid === true) {
+            locationStatusEl.textContent = `✅ Lokasi valid untuk absen`;
+            locationStatusEl.style.display='block';
+            locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat}, ${userLocation.lng}`;
+        
+            initMap(userLocation.lat, userLocation.lng);
+            
+          } else {
+            locationStatusEl.textContent = `❌ Lokasi tidak valid untuk absen`;
+          }
+
         } catch (err) {
           console.error('Error:', err);
           alert('Error validasi lokasi:'+JSON.stringify(err.message));
