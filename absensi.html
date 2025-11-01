@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan BSA</h2>
+  <h2>📋 Absensi Karyawan BSA 1</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -1017,7 +1017,7 @@
           locationStatusEl.style.display='block';
           
           if (result.valid === false) {
-            locationStatusEl.style.display='none';
+            loadingMapnCamera.style.display='none';
             locationStatusEl.textContent = `✅ Lokasi valid untuk absen`;
             locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat}, ${userLocation.lng}`;
         
