@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan BSA 1</h2>
+  <h2>📋 Absensi Karyawan BSA</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -509,7 +509,8 @@
           alert(`✅ Login berhasil,Selamat Datang: ${id}-${nama}`);
           // Redirect atau lanjut ke halaman absen
           // startAppBtn.style.display = 'none';
-          
+          loadingMapnCamera.style.display='block';
+
           namaKaryawan.innerHTML = `<strong>👤 Karyawan: ${nama} (ID: ${id})</strong>`;
           await requestLocation();
           // await startCamera();
@@ -1014,9 +1015,9 @@
           const result = await response.json();
 
           locationStatusEl.style.display='block';
-          loadingMapnCamera.style.display='block';
           
           if (result.valid === false) {
+            locationStatusEl.style.display='none';
             locationStatusEl.textContent = `✅ Lokasi valid untuk absen`;
             locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat}, ${userLocation.lng}`;
         
