@@ -509,7 +509,6 @@
           alert(`✅ Login berhasil,Selamat Datang: ${id}-${nama}`);
           // Redirect atau lanjut ke halaman absen
           // startAppBtn.style.display = 'none';
-          loadingMapnCamera.style.display='block';
           
           namaKaryawan.innerHTML = `<strong>👤 Karyawan: ${nama} (ID: ${id})</strong>`;
           await requestLocation();
@@ -1014,8 +1013,10 @@
           const response = await fetch(url);
           const result = await response.json();
 
+          locationStatusEl.style.display='block';
+          
           if (result.valid === true) {
-            locationStatusEl.style.display='block';
+            loadingMapnCamera.style.display='block';
             locationStatusEl.textContent = `✅ Lokasi valid untuk absen`;
             locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat}, ${userLocation.lng}`;
         
@@ -1023,6 +1024,7 @@
 
           } else {
             locationStatusEl.textContent = `❌ Lokasi tidak valid untuk absen`;
+            loadingMapnCamera.style.display='none';
           }
 
         } catch (err) {
