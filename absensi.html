@@ -73,7 +73,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-  <h2>📋 Absensi Karyawan BSA 1</h2>
+  <h2>📋 Absensi Karyawan BSA 2</h2>
 
   <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="absensiTab" role="tablist">
@@ -1015,12 +1015,12 @@
           const result = await response.json();
 
           if (result.valid === true) {
-            locationStatusEl.textContent = `✅ Lokasi valid untuk absen`;
             locationStatusEl.style.display='block';
+            locationStatusEl.textContent = `✅ Lokasi valid untuk absen`;
             locationStatusEl.textContent = `✅ Lokasi: ${userLocation.lat}, ${userLocation.lng}`;
         
             initMap(userLocation.lat, userLocation.lng);
-            
+
           } else {
             locationStatusEl.textContent = `❌ Lokasi tidak valid untuk absen`;
           }
