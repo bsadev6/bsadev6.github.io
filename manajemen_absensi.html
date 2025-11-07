@@ -83,17 +83,17 @@
                         <ul class="nav nav-pills  nav-fill" id="absensiTab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
-                                <i class="fas fa-camera me-1"></i> Daftar Absensi
+                                    <i class="fas fa-camera me-1"></i> Daftar Absensi
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="lokasi-tab" data-bs-toggle="tab" data-bs-target="#lokasi" type="button" role="tab">
-                                <i class="fas fa-history me-1"></i> Master Lokasi
+                                <button onclick="loadLokasi()" class="nav-link" id="lokasi-tab" data-bs-toggle="tab" data-bs-target="#lokasi" type="button" role="tab">
+                                    <i class="fas fa-history me-1"></i> Master Lokasi
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="karyawan-tab" data-bs-toggle="tab" data-bs-target="#karyawan" type="button" role="tab">
-                                <i class="fas fa-history me-1"></i> Master Karyawan
+                                <button onclick="loadKaryawan2()" class="nav-link" id="karyawan-tab" data-bs-toggle="tab" data-bs-target="#karyawan" type="button" role="tab">
+                                    <i class="fas fa-history me-1"></i> Master Karyawan
                                 </button>
                             </li>
                         </ul> 
@@ -123,8 +123,44 @@
                                     </table>
                                 </div>
                             </div>   
-                            <div class="tab-pane fade" id="lokasi" role="tabpanel">lokasi</div>   
-                            <div class="tab-pane fade" id="karyawan" role="tabpanel">karyawan</div>   
+                            <div class="tab-pane fade" id="lokasi" role="tabpanel">
+                                 <div class="table-responsive">
+                                    <table id="table_lokasi" class="table table-hover" style="width:100%">
+                                         <thead>
+                                             <tr>
+                                                 <th class="text-center">No</th>
+                                                 <th class="text-center">Lokasi</th>
+                                                 <th class="text-center">Latitude</th>
+                                                 <th class="text-center">Loangitude</th>
+                                                 <th class="text-center">Radius</th>
+                                                 <th class="text-center">Karyawan</th>
+                                             </tr>
+                                         </thead>
+                                         <tbody id="table_lokasi_body">
+                                            
+                                         </tbody>
+                                        
+                                    </table>
+                                </div>
+                            </div>   
+                            <div class="tab-pane fade" id="karyawan" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table id="table_karyawan" class="table table-hover" style="width:100%">
+                                         <thead>
+                                             <tr>
+                                                 <th class="text-center">No</th>
+                                                 <th class="text-center">ID</th>
+                                                 <th class="text-center">Nama</th>
+                                                 <th class="text-center">Action</th>
+                                             </tr>
+                                         </thead>
+                                         <tbody id="table_karyawan_body">
+                                           
+                                         </tbody>
+                                        
+                                    </table>
+                                </div>
+                            </div>   
                         </div>
                     </div>
                 </div>  <!-- end card -->
@@ -138,7 +174,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Riwayat Absensi</h1>
+                <h1 class="modal-title fs-5" id="staticBackdropLabel"></h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -175,7 +211,7 @@
                         </div>
                     </div>
                     <br>
-                    <div id="loading" class="text-center">Memuat data...</div>
+                    <div id="loading" class="text-center d-none">Memuat data...</div>
                     <div class="table-responsive">
                         <table class="table table-borderless table-striped" id="historiTable" style="display:none;">
                             <thead class="table-light">
@@ -209,6 +245,43 @@
         </div>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="staticBackdrop2" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">📜 Edit Data</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+               
+                    <div class="row ">
+                        <div class="mb-3 col-sm-6 text-start">
+                            <label for="idkar" class="form-label"> <b>ID</b> </label>
+                            <input type="text" name="idkar" id="idkar" class="form-control" placeholder="ID Karyawan" readonly>
+                        </div>
+                        <div class="mb-3 col-sm-6 text-start">
+                            <label for="namakar"  class="form-label"> <b>Nama Karyawan</b> </label>
+                            <input type="text" name="namakar" id="namakar" class="form-control" placeholder="Nama Karyawan">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="justify-content-center text-center">
+                            <button type="button" id="btnSave" class="btn btn-sm btn-success col-sm-12" onclick="editKaryawan()">
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                    <br>
+                        
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Libraries -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
@@ -220,7 +293,7 @@
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
      <script>
 
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYnrR30YAjICb5BpvtFmmuUCP8bZvjOp0BQ2BvXbSeA6OrdiZ6v2Eo9pna-FNA_7QV/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-gf84dhXJ--qUDwgZOW0Z9-R8QlocMdnR_RC0PRXpAFyoWtZHOv4Yz_etzqK0pmM/exec";
         
         const table = document.getElementById('table_absensi'); 
         const tbody = document.getElementById('table_absensi_body');
@@ -272,9 +345,66 @@
             }
         }
 
+        // Fungsi load histori dengan filter
+        async function loadLokasi() {
+
+            try {
+            const params = new URLSearchParams({
+                action: 'getLokasi',
+                lokasi: '',
+                user:''
+            });
+
+            const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
+            const response = await fetch(url);
+            const result = await response.json();
+
+            const { data, total } = result;
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data lokasi.</td></tr>';
+            } else {
+                
+                $('#table_lokasi').DataTable({ 
+                    destroy: true,
+                    data: data,
+                    columns: [
+                        { data: null,className: 'text-center', render: (data, type, row, meta) => meta.row + 1 },
+                        { data: 'lokasi' ,className: 'text-start'},
+                        { data: 'latitude' ,className: 'text-center'},
+                        { data: 'longitude' ,className: 'text-center'},
+                        { data: 'radius' ,className: 'text-center'},
+                        { data: 'user' ,className: 'text-start'},
+                        // { data: null, render: (data) => `
+                        //     <button type="button" onclick="loadModal(${data.id})" class="btn btn-primary btn-sm" data-bs-toggle="modal" 
+                        //             data-bs-target="#staticBackdrop">
+                        //         Absensi
+                        //     </button>
+                        // `}
+                    ]
+                });
+            }
+
+            // renderPagination();
+
+            } catch (err) {
+                console.error('Error:', err);
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data lokasi.</td></tr>';
+            } finally {
+                console.log('Load lokasi selesai');
+            }
+        }
+
         function loadModal(id) {
             document.getElementById('id_karyawan').value = id;
             // loadHistori(1);
+        }
+
+        function loadModal2(data) {
+            console.log(data);
+            $('#idkar').val(data.id);
+            $('#namakar').val(data.nama);
+           
         }
 
         // Fungsi load histori dengan filter
@@ -347,6 +477,58 @@
                 }
         }
 
+        // Fungsi load histori dengan filter
+        async function loadKaryawan2() {
+
+            try {
+            const params = new URLSearchParams({
+                action: 'getKaryawan',
+                id: '',
+                nama:''
+            });
+
+            const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
+            const response = await fetch(url);
+            const result = await response.json();
+
+            const { data, total } = result;
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data karyawan.</td></tr>';
+            } else {
+                
+                $('#table_karyawan').DataTable({
+                    destroy: true,
+                    data: data,
+                    columns: [
+                        { data: null,className: 'text-center', render: (data, type, row, meta) => meta.row + 1 },
+                        { data: 'id' ,className: 'text-center'},
+                        { data: 'nama' ,className: 'text-start'},
+                        { data: null, render: function (data) { 
+                            
+                            const params = JSON.stringify(data);
+                            let btn=`
+                                    <button type="button" onclick='loadModal2(${params})' value='' class="btn btn-warning btn-sm" data-bs-toggle="modal" 
+                                            data-bs-target="#staticBackdrop2">
+                                        Edit
+                                    </button>`;
+                            return btn;
+                         }
+                        }
+                    ]
+                });
+            }
+
+            // renderPagination();
+
+            } catch (err) {
+                console.error('Error:', err);
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data karyawan.</td></tr>';
+            } finally {
+                console.log('Load Karyawan selesai');
+            }
+        }
+
          // Fungsi render pagination
         function renderPagination() {
             const paginationList = document.getElementById('paginationList');
@@ -399,8 +581,62 @@
             
             // Set default ke tahun sekarang
             yearSelect.value = currentYear;
+
+            // Set bulan default ke bulan sekarang
+            const currentMonth = new Date().getMonth() + 1; // getMonth() = 0–11
+            document.getElementById('filterBulan').value = currentMonth;
         }
       
+
+        async function absen() {
+
+            const idInput = document.getElementById('id_karyawan').value.trim();
+        
+            const params = new URLSearchParams();
+            params.append('id', idInput.value);
+            params.append('lat', userLocation ? userLocation.lat : '');
+            params.append('lng', userLocation ? userLocation.lng : '');
+            params.append('date', timestampSet);
+
+            const id = idInput.value.trim();
+            if (!id) {
+                sendBtn.disabled = false;
+                statuSend.textContent = 'ID Karyawan kosong!';
+                return;
+            }
+
+            try {
+                statuSend.textContent = 'Mengirim data...';
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: params
+                });
+
+                const text = await response.text();
+            
+                if (text === 'success') {
+                    statuSend.textContent = `✅ Absen berhasil-ID: ${id}`;
+
+                    setTimeout(() => {
+                        // === 2. UPLOAD FOTO KE GOOGLE DRIVE ===
+                        statuSend.textContent = 'Mengupload foto...';
+                        const photoUrl = uploadPhotoToDrive(idInput.value, capturedImageUrl);
+                    }, 1000);
+                    
+                } else {
+                    sendBtn.disabled = false;
+                    statuSend.textContent =  `❌ Gagal: ${text.replace('error: ', '')}`;
+                }
+
+            } catch (err) {
+                sendBtn.disabled = false;
+                statuSend.textContent = '❌ Gagal mengirim data:'+err;
+                console.error(err);
+            }
+
+            sendBtn.disabled = false;
+
+        }
 
         $(document).ready(function () {
             console.log("Manajemen Absensi Karyawan Loaded");
