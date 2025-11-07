@@ -131,7 +131,7 @@
                                                  <th class="text-center">No</th>
                                                  <th class="text-center">Lokasi</th>
                                                  <th class="text-center">Latitude</th>
-                                                 <th class="text-center">Loangitude</th>
+                                                 <th class="text-center">Longitude</th>
                                                  <th class="text-center">Radius</th>
                                                  <th class="text-center">Karyawan</th>
                                              </tr>
@@ -282,6 +282,18 @@
         </div>
     </div>
 
+    
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasRightLabel">Daftar Karyawan di Lokasi</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body text-start" id="offcanvas1">
+            ...
+        </div>
+    </div>
+
     <!-- Libraries -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
@@ -297,7 +309,7 @@
         
         const table = document.getElementById('table_absensi'); 
         const tbody = document.getElementById('table_absensi_body');
-        
+        let karyawanData = [];
         // Fungsi load histori dengan filter
         async function loadKaryawan() {
 
@@ -317,6 +329,8 @@
             if (data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data karyawan.</td></tr>';
             } else {
+
+                karyawanData = data;
                 
                 $('#table_absensi').DataTable({
                     destroy: true,
@@ -374,7 +388,18 @@
                         { data: 'latitude' ,className: 'text-center'},
                         { data: 'longitude' ,className: 'text-center'},
                         { data: 'radius' ,className: 'text-center'},
-                        { data: 'user' ,className: 'text-start'},
+                        { data: null ,className: 'text-center', render: function (data) {
+
+                                
+                                let btn=`
+                                    <button onclick='showUserlok(this.value)' value='${data.user}' class="btn btn-sm btn-success" type="button" 
+                                        data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+                                        Karyawan
+                                    </button>
+                                `
+                                return btn;
+                            }
+                        },
                         // { data: null, render: (data) => `
                         //     <button type="button" onclick="loadModal(${data.id})" class="btn btn-primary btn-sm" data-bs-toggle="modal" 
                         //             data-bs-target="#staticBackdrop">
@@ -395,13 +420,27 @@
             }
         }
 
+        function showUserlok(val) {
+
+            const offcanvasBody = document.getElementById('offcanvas1');
+            let userlok = '';
+            sortedData = karyawanData.sort((a, b) => a.nama.localeCompare(b.nama));
+            $.each(sortedData, function (idx, row) {
+                
+                if (val.split(',').includes(row.id.toString())) {
+                    userlok += '<li class="list-group-item">'+row.nama+' </li>';
+                }
+
+            });
+           
+            offcanvasBody.innerHTML = `<ul class="list-group list-group-flush">${userlok}</ul>`;
+        }
+
         function loadModal(id) {
             document.getElementById('id_karyawan').value = id;
-            // loadHistori(1);
         }
 
         function loadModal2(data) {
-            console.log(data);
             $('#idkar').val(data.id);
             $('#namakar').val(data.nama);
            
