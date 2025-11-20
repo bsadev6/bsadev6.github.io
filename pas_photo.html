@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pas Foto Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Pangkas Wajah</h1>
+
+  <!-- Pilihan Ukuran -->
+  <div class="size-selector">
+    <label>
+      <input type="radio" name="size" value="3x4" checked /> 3×4 cm
+    </label>
+    <label>
+      <input type="radio" name="size" value="4x6" /> 4×6 cm
+    </label>
+  </div>
+
+  <!-- Mode Pemotongan -->
+  <div class="mode-selector">
+    <label>
+      <input type="radio" name="mode" value="manual" checked /> Crop Manual
+    </label>
+    <label>
+      <input type="radio" name="mode" value="auto" /> Otomatis (Center Crop)
+    </label>
+  </div>
+
+  <!-- Upload File -->
+  <input type="file" id="imageUpload" accept="image/*" />
+
+  <!-- Container Horizontal: Editor + Preview -->
+  <div id="mainContainer" style="display: none; margin-top: 20px; display: flex; gap: 20px; align-items: flex-start;">
+
+    <!-- Kolom Kiri: Editor & Toolbar -->
+    <div id="editorColumn" style="flex: 1; max-width: 50%;">
+      <div id="editor" style="position: relative; border: 1px solid #ddd; overflow: hidden; background: white;">
+        <img id="sourceImage" style="max-width: 100%; display: block;" />
+        <div id="overlay"></div>
+        <div id="cropBox">
+          <div class="handle top-left"></div>
+          <div class="handle top-right"></div>
+          <div class="handle bottom-left"></div>
+          <div class="handle bottom-right"></div>
+          <div class="handle top-center"></div>
+          <div class="handle right-center"></div>
+          <div class="handle bottom-center"></div>
+          <div class="handle left-center"></div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div id="toolbar" style="margin-top: 15px; text-align: center;">
+        <button id="zoomIn">+</button>
+        <button id="zoomOut">−</button>
+        <button id="brightnessBtn">☀️</button>
+        <button id="resetBtn">🔄</button>
+      </div>
+
+      <!-- Slider Kecerahan -->
+      <div id="brightnessSlider" style="display: none; margin: 15px auto; width: 80%; max-width: 300px;">
+        <label>Kecerahan</label>
+        <input type="range" id="brightnessValue" min="-100" max="100" value="0" />
+        <span id="brightnessDisplay">0</span>
+      </div>
+
+      <!-- Tombol Generate -->
+      <button id="downloadBtn" disabled style="margin-top: 10px; width: 100%;">Generate Pas Foto</button>
+    </div>
+
+    <!-- Kolom Kanan: Loading & Preview -->
+    <div id="previewColumn" style="flex: 1; max-width: 50%; display: flex; flex-direction: column; align-items: center;">
+      <!-- Loading -->
+      <div id="loading" style="display: none; margin: 20px; text-align: center;">
+        <div class="spinner"></div>
+        <p>Memproses...</p>
+      </div>
+
+      <!-- Preview Hasil -->
+      <div id="previewContainer" style="display: none; text-align: center; width: 100%;">
+        <h3>Hasil Pas Foto</h3>
+        <img id="previewResult" style="max-width: 100%; border: 1px solid #ccc; box-shadow: 0 0 8px rgba(0,0,0,0.1);" />
+        <br><br>
+        <button id="downloadFinal">Unduh Hasil</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Hasil Akhir (Di Bawah) -->
+  <div id="finalResultSection" style="margin-top: 30px; text-align: center; display: none;">
+    <h3>Hasil Pas Foto</h3>
+    <img id="finalResult" style="max-width: 300px; border: 1px solid #ddd; border-radius: 4px;" />
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

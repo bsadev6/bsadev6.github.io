@@ -1,0 +1,268 @@
+/* Reset & Umum */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  text-align: center;
+  padding: 20px;
+  background: #f9f9f9;
+  color: #333;
+}
+
+h1 {
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #222;
+}
+
+/* Pilihan Ukuran */
+.size-selector {
+  margin: 15px 0;
+}
+.size-selector label {
+  margin: 0 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.size-selector input[type="radio"] {
+  margin-right: 6px;
+}
+
+/* Mode Pemotongan */
+.mode-selector {
+  margin: 15px 0;
+}
+.mode-selector label {
+  margin: 0 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.mode-selector input[type="radio"] {
+  margin-right: 6px;
+}
+
+/* Upload File */
+input[type="file"] {
+  margin: 15px 0;
+  padding: 8px;
+  font-size: 15px;
+}
+
+/* Container Utama Horizontal */
+#mainContainer {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+/* Kolom Editor */
+#editorColumn {
+  flex: 1;
+  max-width: 50%;
+}
+
+/* Kolom Preview */
+#previewColumn {
+  flex: 1;
+  max-width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Editor Gambar */
+#editor {
+  position: relative;
+  border: 1px solid #ddd;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#sourceImage {
+  display: block;
+  max-width: 100%;
+  transition: transform 0.2s ease;
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+#cropBox {
+  position: absolute;
+  border: 2px solid #007bff;
+  background: transparent;
+  cursor: move;
+  box-sizing: border-box;
+  top: 50px;
+  left: 50px;
+  width: 200px;
+  height: 267px;
+}
+
+.handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #007bff;
+  border: 2px solid white;
+  border-radius: 2px;
+  z-index: 10;
+}
+
+.handle.top-left { top: -6px; left: -6px; cursor: nw-resize; }
+.handle.top-right { top: -6px; right: -6px; cursor: ne-resize; }
+.handle.bottom-left { bottom: -6px; left: -6px; cursor: sw-resize; }
+.handle.bottom-right { bottom: -6px; right: -6px; cursor: se-resize; }
+.handle.top-center { top: -6px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+.handle.bottom-center { bottom: -6px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+.handle.left-center { left: -6px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
+.handle.right-center { right: -6px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
+
+/* Toolbar */
+#toolbar {
+  margin: 15px 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+#toolbar button {
+  padding: 8px 14px;
+  font-size: 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#toolbar button:hover {
+  background: #0069d9;
+}
+
+/* Slider Kecerahan */
+#brightnessSlider {
+  display: none;
+  margin: 15px auto;
+  width: 80%;
+  max-width: 320px;
+  align-items: center;
+  gap: 10px;
+}
+#brightnessSlider label {
+  font-weight: 600;
+  min-width: 80px;
+}
+#brightnessSlider input[type="range"] {
+  flex: 1;
+}
+#brightnessDisplay {
+  width: 30px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Tombol Generate */
+#downloadBtn {
+  margin-top: 10px;
+  padding: 10px;
+  width: 100%;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#downloadBtn:hover:not(:disabled) {
+  background: #218838;
+}
+#downloadBtn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Loading Spinner */
+#loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Preview Hasil */
+#previewContainer {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  text-align: center;
+  width: 100%;
+}
+#previewResult {
+  max-width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+#downloadFinal {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#downloadFinal:hover {
+  background: #218838;
+}
+
+/* Hasil Akhir (Opsional) */
+#finalResultSection {
+  margin-top: 30px;
+  text-align: center;
+}
+#finalResult {
+  max-width: 300px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Responsif */
+@media (max-width: 768px) {
+  #mainContainer {
+    flex-direction: column;
+  }
+  #editorColumn, #previewColumn {
+    max-width: 100%;
+  }
+}
