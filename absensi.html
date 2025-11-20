@@ -75,152 +75,158 @@
 <body>
   <h2>📋 Absensi Karyawan BSA</h2>
 
-  <!-- Nav Tabs -->
-    <ul class="nav nav-tabs" id="absensiTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
-          <i class="fas fa-camera me-1"></i> Absensi
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="histori-tab" data-bs-toggle="tab" data-bs-target="#histori" type="button" role="tab">
-          <i class="fas fa-history me-1"></i> Riwayat Absen
-        </button>
-      </li>
-    </ul>
-     <!-- Tab Content -->
-    <div class="tab-content card p-4 mt-3" id="absensiTabContent">
-      
-      <!-- Tab Absensi -->
-      <div class="tab-pane fade show active" id="absensi" role="tabpanel">
-            <div class="row justify-content-center">
-            <div class="col-sm-3">
-              <div class="card">
-                <div class="card-body">
-                  <div id="status">Masukkan ID & klik "Login"</div>
-                  <div class="row justify-content-center">
-                    <div class="col-sm-12">
-                      <input type="text" id="userIdInput" placeholder="Masukkan ID Karyawan" autocomplete="off">
-                      <button id="startAppBtn" class="btn primary">▶️ Login</button>
+  <div class="row justify-content-center">
+    <div class="col-sm-3">
+      <!-- Nav Tabs -->
+      <ul class="nav nav-tabs" id="absensiTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="absensi-tab" data-bs-toggle="tab" data-bs-target="#absensi" type="button" role="tab">
+            <i class="fas fa-camera me-1"></i> Absensi
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="histori-tab" data-bs-toggle="tab" data-bs-target="#histori" type="button" role="tab">
+            <i class="fas fa-history me-1"></i> Riwayat Absen
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content card p-4 mt-3" id="absensiTabContent">
+       
+        <!-- Tab Absensi -->
+        <div class="tab-pane fade show active" id="absensi" role="tabpanel">
+              <div class="row justify-content-center">
+              <div class="col-sm-12">
+                <div class="card">
+                  <div class="card-body">
+                    <div id="status">Masukkan ID & klik "Login"</div>
+                    <div class="row justify-content-center">
+                      <div class="col-sm-12">
+                        <input type="text" id="userIdInput" placeholder="Masukkan ID Karyawan" autocomplete="off">
+                        <button id="startAppBtn" class="btn primary">▶️ Login</button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          <br>
-          <div class="row justify-content-center">
-            <div class="col-sm-3">
-                <div class="card">
-                    <div class="card-body">
-            
-                      <div class="row justify-content-center">
-                        <div class="col-sm-12">
-                          <!-- Tombol mulai -->
-                        
-                          <div id="namaKaryawan" class="info"></div>
-                          <div id="locationStatus" class="info"></div>
-                          <div id="loadingMapnCamera" class="text-center" style="display:none;">Memuat Lokasi dan Camera...</div>
-                          <div id="map"></div>
-                          <video 
-                            id="video" 
-                            autoplay 
-                            muted 
-                            playsinline 
-                            webkit-playsinline
-                            style="display:none;"
-                          ></video>
-                        </div>
-            
-                      </div>
-                      
-                    </div>
-                </div>
-            </div>
-          </div>
-          <br>
-          <div class="row justify-content-center">
-            <div class="col-sm-3">
-                <div class="card">
-                    <div class="card-body">
-                        <img id="photoPreview" alt="Foto Absensi">
-
-                        <div class="controls">
-                          <button id="switchBtn" class="btn btn-primary" style="display:none;">🔄 Ganti Kamera</button>
-                          <button id="captureBtn" class="btn btn-success" style="display:none;">📷 Ambil Foto</button>
-                          <button id="downloadBtn" class="btn btn-success" style="display:none;">⬇️ Unduh</button>
-                          <button id="retakeBtn" class="btn btn-warning" style="display:none;">↺ Ambil Ulang</button>
-                          <button id="sendBtn" class="btn btn-primary" style="display:none;">📤 Kirim ke Server</button>
-                          <div id="statuSend" ></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-          </div>
-      </div>
-
-      <!-- Tab Histori -->
-      <div class="tab-pane fade" id="histori" role="tabpanel">
-          <h4 class="mb-3">📜 Riwayat Absen</h4>
-          <div class="row mb-3">
+            <br>
+            <div class="row justify-content-center">
+              <div class="col-sm-12">
+                  <div class="card">
+                      <div class="card-body">
               
-              <div class="col-md-2">
-                <select id="filterBulan" class="form-select mb-3" placeholder="Pilih Bulan">
-                  <option value="">Semua Bulan</option>
-                  <option value="1">Januari</option>
-                  <option value="2">Februari</option>
-                  <option value="3">Maret</option>
-                  <option value="4">April</option>
-                  <option value="5">Mei</option>
-                  <option value="6">Juni</option>
-                  <option value="7">Juli</option>
-                  <option value="8">Agustus</option>
-                  <option value="9">September</option>
-                  <option value="10">Oktober</option>
-                  <option value="11">November</option>
-                  <option value="12">Desember</option>
-                </select>
+                        <div class="row justify-content-center">
+                          <div class="col-sm-12">
+                            <!-- Tombol mulai -->
+                          
+                            <div id="namaKaryawan" class="info"></div>
+                            <div id="locationStatus" class="info"></div>
+                            <div id="loadingMapnCamera" class="text-center" style="display:none;">Memuat Lokasi dan Camera...</div>
+                            <div id="map"></div>
+                            <video 
+                              id="video" 
+                              autoplay 
+                              muted 
+                              playsinline 
+                              webkit-playsinline
+                              style="display:none;"
+                            ></video>
+                          </div>
+              
+                        </div>
+                        
+                      </div>
+                  </div>
               </div>
-              <div class="col-md-2">
-                <select id="filterTahun" class="form-select mb-3" placeholder="Pilih Tahun">
-                  <option value="">Semua Tahun</option>
-                  <!-- Tahun akan diisi otomatis oleh JS -->
-                </select>
+            </div>
+            <br>
+            <div class="row justify-content-center">
+              <div class="col-sm-12">
+                  <div class="card">
+                      <div class="card-body">
+                          <img id="photoPreview" alt="Foto Absensi">
+  
+                          <div class="controls">
+                            <button id="switchBtn" class="btn btn-primary" style="display:none;">🔄 Ganti Kamera</button>
+                            <button id="captureBtn" class="btn btn-success" style="display:none;">📷 Ambil Foto</button>
+                            <button id="downloadBtn" class="btn btn-success" style="display:none;">⬇️ Unduh</button>
+                            <button id="retakeBtn" class="btn btn-warning" style="display:none;">↺ Ambil Ulang</button>
+                            <button id="sendBtn" class="btn btn-primary" style="display:none;">📤 Kirim ke Server</button>
+                            <div id="statuSend" ></div>
+                          </div>
+                      </div>
+                  </div>
               </div>
-              <div class="col-md-3">
-                <button id="btnFilter" class="btn btn-primary w-100" onclick="loadHistori(1)">
-                  <i class="fas fa-search"></i> Filter
-                </button>
-              </div>
-          </div>
-          <br>
-          <div id="loading" class="text-center">Memuat data...</div>
-          <div class="table-responsive">
-              <table class="table table-borderless table-striped" id="historiTable" style="display:none;">
-                <thead class="table-light">
-                  <tr>
-                    <th>Tanggal</th>
-                    <th>Clock In</th>
-                    <th>Clock Out</th>
-                  </tr>
-                </thead>
-                <tbody id="historiBody">
-                  <!-- Data akan diisi via JavaScript -->
-                </tbody>
-              </table>
-          </div>
-          <!-- Pagination -->
-         <nav aria-label="Pagination" id="paginationNav" style="display:none;">
-           <ul class="pagination justify-content-center" id="paginationList">
-             <!-- Dinamis diisi oleh JS -->
-           </ul>
-         </nav>
-   
-         <div id="noData" class="text-center d-none">
-           <p class="text-muted">Tidak ada data absen.</p>
-         </div>
+            </div>
+        </div>
+  
+        <!-- Tab Histori -->
+        <div class="tab-pane fade" id="histori" role="tabpanel">
+            <h4 class="mb-3">📜 Riwayat Absen</h4>
+            <div class="row mb-3">
+                
+                <div class="col-sm-12">
+                  <select id="filterBulan" class="form-select mb-3" placeholder="Pilih Bulan">
+                    <option value="">Semua Bulan</option>
+                    <option value="1">Januari</option>
+                    <option value="2">Februari</option>
+                    <option value="3">Maret</option>
+                    <option value="4">April</option>
+                    <option value="5">Mei</option>
+                    <option value="6">Juni</option>
+                    <option value="7">Juli</option>
+                    <option value="8">Agustus</option>
+                    <option value="9">September</option>
+                    <option value="10">Oktober</option>
+                    <option value="11">November</option>
+                    <option value="12">Desember</option>
+                  </select>
+                </div>
+                <div class="col-sm-12">
+                  <select id="filterTahun" class="form-select mb-3" placeholder="Pilih Tahun">
+                    <option value="">Semua Tahun</option>
+                    <!-- Tahun akan diisi otomatis oleh JS -->
+                  </select>
+                </div>
+                <div class="col-sm-12">
+                  <button id="btnFilter" class="btn btn-primary w-100" onclick="loadHistori(1)">
+                    <i class="fas fa-search"></i> Filter
+                  </button>
+                </div>
+            </div>
+            <br>
+            <div id="loading" class="text-center">Memuat data...</div>
+            <div class="table-responsive">
+                <table class="table table-borderless table-striped" id="historiTable" style="display:none;">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Clock In</th>
+                      <th>Clock Out</th>
+                    </tr>
+                  </thead>
+                  <tbody id="historiBody">
+                    <!-- Data akan diisi via JavaScript -->
+                  </tbody>
+                </table>
+            </div>
+            <!-- Pagination -->
+            <nav aria-label="Pagination" id="paginationNav" style="display:none;">
+              <ul class="pagination justify-content-center" id="paginationList">
+                <!-- Dinamis diisi oleh JS -->
+              </ul>
+            </nav>
+      
+            <div id="noData" class="text-center d-none">
+              <p class="text-muted">Tidak ada data absen.</p>
+            </div>
+        </div>
       </div>
     </div>
+
+  </div>
   
   
 
