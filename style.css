@@ -32,6 +32,23 @@ h1 {
   margin-right: 6px;
 }
 
+.dpi-selector {
+  margin: 15px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+.dpi-selector label {
+  font-weight: bold;
+}
+#dpiInput {
+  padding: 6px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
 /* Mode Pemotongan */
 .mode-selector {
   margin: 15px 0;

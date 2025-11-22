@@ -290,15 +290,20 @@ downloadBtn.addEventListener('click', () => {
   setTimeout(() => {
     const size = document.querySelector('input[name="size"]:checked').value;
     const [wCm, hCm] = size.split('x').map(Number);
+    const userDPI = parseInt(document.getElementById('dpiInput').value);
 
-    const DPI = 118;
+    // Konversi cm → pixel
+    const toPixels = (cm) => Math.round(cm * userDPI / 2.54);
+    const canvasWidth = toPixels(wCm);
+    const canvasHeight = toPixels(hCm);
+
     const canvas = document.createElement('canvas');
-    canvas.width = wCm * DPI;
-    canvas.height = hCm * DPI;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
     const ctx = canvas.getContext('2d');
 
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     if (currentMode === 'manual') {
       const cropLeft = parseFloat(cropBox.style.left);
@@ -318,7 +323,7 @@ downloadBtn.addEventListener('click', () => {
       ctx.drawImage(
         sourceImage,
         actualLeft, actualTop, actualWidth, actualHeight,
-        0, 0, canvas.width, canvas.height
+        0, 0, canvasWidth, canvasHeight
       );
     } else {
       const aspect = wCm / hCm;
@@ -341,19 +346,41 @@ downloadBtn.addEventListener('click', () => {
       ctx.drawImage(
         sourceImage,
         cropX, cropY, cropWidth, cropHeight,
-        0, 0, canvas.width, canvas.height
+        0, 0, canvasWidth, canvasHeight
       );
     }
 
-    // Simpan hasil sebagai data URL
-    lastGeneratedDataURL = canvas.toDataURL('image/jpeg', 0.95);
+    // --- 🔥 Tambahkan Metadata DPI ---
+    // --- 🔥 Tambahkan Metadata DPI (versi piexifjs@1.0.6) ---
+    const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+
+    // Buat objek EXIF
+    const exifObj = {
+      "0th": {
+        [piexif.ImageIFD.XResolution]: [userDPI, 1],
+        [piexif.ImageIFD.YResolution]: [userDPI, 1],
+        [piexif.ImageIFD.ResolutionUnit]: 2 // inch
+      }
+    };
+
+    // Konversi objek EXIF ke binary (string base64)
+    const exifStr = piexif.dump(exifObj);
+
+    // Sisipkan ke data URL JPEG
+    const newData = piexif.insert(exifStr, jpegData);
+    lastGeneratedDataURL = newData;
 
     // Tampilkan preview
     previewResult.src = lastGeneratedDataURL;
     previewContainer.style.display = 'block';
-    showLoading(false);
 
-    // Aktifkan tombol unduh final
+    // Tampilkan info pixel & DPI
+    const pixelInfo = document.getElementById('pixelInfo');
+    if (pixelInfo) {
+      pixelInfo.textContent = `${canvasWidth} × ${canvasHeight} px (${userDPI} DPI)`;
+    }
+
+    showLoading(false);
     downloadFinal.disabled = false;
 
   }, 300);

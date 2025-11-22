@@ -29,6 +29,17 @@
     </label>
   </div>
 
+  <!-- Pilihan DPI -->
+  <div class="dpi-selector">
+    <label for="dpiInput">DPI:</label>
+    <select id="dpiInput">
+      <option value="150">150 DPI</option>
+      <option value="200">200 DPI</option>
+      <option value="300" selected>300 DPI (Standar Cetak)</option>
+      <option value="600">600 DPI (Kualitas Tinggi)</option>
+    </select>
+  </div>
+
   <!-- Upload File -->
   <input type="file" id="imageUpload" accept="image/*" />
 
@@ -96,6 +107,9 @@
     <img id="finalResult" style="max-width: 300px; border: 1px solid #ddd; border-radius: 4px;" />
   </div>
 
+  <!-- Tambahkan sebelum </body> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/piexifjs@0.8.12/build/piexif.min.js"></script> -->
+  <script src="piexif.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
